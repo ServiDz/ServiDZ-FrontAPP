@@ -45,7 +45,7 @@ class GetStartedPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigate or action
+                        Navigator.pushNamed(context, 'login');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[800],
@@ -56,7 +56,7 @@ class GetStartedPage extends StatelessWidget {
                       ),
                       child: const Text(
                         "Get Started",
-                        style: TextStyle(fontSize: 16 , color: Colors.white, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16 , color: Color(0xFEE2BB), fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
