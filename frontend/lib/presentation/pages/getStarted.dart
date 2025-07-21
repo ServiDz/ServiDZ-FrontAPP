@@ -56,7 +56,7 @@ class GetStartedPage extends StatelessWidget {
                       ),
                       child: const Text(
                         "Get Started",
-                        style: TextStyle(fontSize: 16 , color: Color(0xFEE2BB), fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16 , color: Color(0xFFFEE2BB), fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),

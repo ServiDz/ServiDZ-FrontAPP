@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/presentation/widgets/custom_text_field.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 
 class SignupPage extends StatefulWidget {
@@ -14,6 +16,52 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isObscured = true;
+
+  Future<void> handleSignup() async {
+  final name = _nameController.text.trim();
+  final email = _emailController.text.trim();
+  final password = _passwordController.text.trim();
+
+  final url = Uri.parse('http://10.93.89.181:5000/api/auth/register'); // adjust if needed
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+        'role': 'user', // or 'professional'
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final tempUserId = data['tempUserId'];
+
+      // Navigate to OTP page with user ID
+      Navigator.pushNamed(
+      context,
+      'otpVerification',
+        arguments: {'tempUserId': tempUserId},
+    );
+    } else {
+      final error = jsonDecode(response.body);
+      showError(error['message'] ?? 'Signup failed');
+    }
+  } catch (e) {
+    showError('Something went wrong. Try again.');
+    print('Signup error: $e');
+  }
+}
+
+void showError(String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message)),
+  );
+}
+
 
   @override
   void dispose() {
@@ -102,7 +150,7 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   onPressed: () {
                     // Handle signup logic here
-                    Navigator.pushNamed(context, 'otpVerification');
+                    handleSignup();
                   },
                   child: const Text(
                     'Signup',

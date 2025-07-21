@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/presentation/widgets/custom_text_field.dart'; 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,7 +36,10 @@ class _LoginPageState extends State<LoginPage> {
         final refreshToken = data['refreshToken'];
         final user = data['user'];
 
-        // TODO: Store tokens if needed with SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', user['_id']);
+        await prefs.setString('accessToken', accessToken);
+        await prefs.setString('refreshToken', refreshToken);
 
         // Navigate to home
         Navigator.pushReplacementNamed(context, 'homepage');
