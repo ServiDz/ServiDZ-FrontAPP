@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         'login':(context) => const LoginPage(),
         'signup': (context) => const SignupPage(),
         'otpVerification': (context) => const OtpVerificationPage(),
-        'homepage': (context) => const HomePage(),
+        'homepage': (context) => HomePage(),
         // '/second': (context) => const SecondPage(),
       },
     );
