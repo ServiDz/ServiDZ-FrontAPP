@@ -22,11 +22,11 @@ class ServiTextInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFEE2BB),
+        color: Color(0xFFFFF6EB),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.withOpacity(0.1),
+            color: Color(0xFFFFF6EB),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -41,7 +41,7 @@ class ServiTextInput extends StatelessWidget {
         validator: validator,
         decoration: InputDecoration(
           filled: true,
-          fillColor: const Color(0xFFFEE2BB).withOpacity(0.8),
+          fillColor: Color(0xFFFFF6EB),
           prefixIcon: Icon(prefixIcon, color: Colors.blue[800]),
           suffixIcon: suffixIcon,
           hintText: hintText,

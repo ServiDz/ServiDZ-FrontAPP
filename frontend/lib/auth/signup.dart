@@ -3,7 +3,6 @@ import 'package:frontend/presentation/widgets/custom_text_field.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
 
@@ -17,51 +16,60 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isObscured = true;
 
-  Future<void> handleSignup() async {
-  final name = _nameController.text.trim();
-  final email = _emailController.text.trim();
-  final password = _passwordController.text.trim();
+  String _selectedRole = 'user'; // default value
 
-  final url = Uri.parse('http://10.93.89.181:5000/api/auth/register'); // adjust if needed
-
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'name': name,
-        'email': email,
-        'password': password,
-        'role': 'user', // or 'professional'
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final tempUserId = data['tempUserId'];
-
-      // Navigate to OTP page with user ID
-      Navigator.pushNamed(
-      context,
-      'otpVerification',
-        arguments: {'tempUserId': tempUserId},
-    );
-    } else {
-      final error = jsonDecode(response.body);
-      showError(error['message'] ?? 'Signup failed');
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null && args['role'] != null) {
+      _selectedRole = args['role'];
     }
-  } catch (e) {
-    showError('Something went wrong. Try again.');
-    print('Signup error: $e');
   }
-}
 
-void showError(String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message)),
-  );
-}
+  Future<void> handleSignup() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
+    final url = Uri.parse('http://10.93.89.181:5000/api/auth/register');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'role': _selectedRole,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final tempUserId = data['tempUserId'];
+
+        Navigator.pushNamed(
+          context,
+          'otpVerification',
+          arguments: {'tempUserId': tempUserId},
+        );
+      } else {
+        final error = jsonDecode(response.body);
+        showError(error['message'] ?? 'Signup failed');
+      }
+    } catch (e) {
+      showError('Something went wrong. Try again.');
+      print('Signup error: $e');
+    }
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   void dispose() {
@@ -103,7 +111,8 @@ void showError(String message) {
               ServiTextInput(
                 controller: _nameController,
                 hintText: 'Enter your name',
-                prefixIcon: Icons.person, validator: (String? value) {  },
+                prefixIcon: Icons.person,
+                validator: (String? value) {},
               ),
               const SizedBox(height: 20),
 
@@ -111,7 +120,8 @@ void showError(String message) {
               ServiTextInput(
                 controller: _emailController,
                 hintText: 'Enter your email',
-                prefixIcon: Icons.email, validator: (String? value) {  },
+                prefixIcon: Icons.email,
+                validator: (String? value) {},
               ),
               const SizedBox(height: 20),
 
@@ -131,7 +141,8 @@ void showError(String message) {
                       _isObscured = !_isObscured;
                     });
                   },
-                ), validator: (String? value) {  },
+                ),
+                validator: (String? value) {},
               ),
               const SizedBox(height: 30),
 
@@ -148,16 +159,13 @@ void showError(String message) {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
-                    // Handle signup logic here
-                    handleSignup();
-                  },
+                  onPressed: handleSignup,
                   child: const Text(
                     'Signup',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFFEE2BB),
+                      color: Color(0xFFFFF6EB),
                     ),
                   ),
                 ),

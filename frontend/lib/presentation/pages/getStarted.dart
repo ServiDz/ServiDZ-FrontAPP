@@ -45,7 +45,7 @@ class GetStartedPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, 'login');
+                        Navigator.pushNamed(context, 'roleSelection');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[800],
