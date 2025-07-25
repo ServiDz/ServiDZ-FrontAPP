@@ -1,4 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../widgets/category_card.dart';
+import '../widgets/professional_card.dart';
+import '../../data/models/tasker_model.dart';
+
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -8,7 +15,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Constants for consistent styling
   static const _primaryColor = Color(0xFF00386F);
   static const _secondaryColor = Color(0xFFFFF6EB);
   static const _cardBackground = Color(0xFFF8F8F8);
@@ -25,6 +31,31 @@ class _HomePageState extends State<HomePage> {
     {'image': 'images/icons/carpenter.png', 'title': 'Carpenter'},
   ];
 
+  List<Tasker> taskers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTaskers();
+  }
+
+  Future<void> fetchTaskers() async {
+    final url = Uri.parse('http://10.93.89.181:5000/api/taskers/all');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          taskers = data.map((e) => Tasker.fromJson(e)).toList();
+        });
+      } else {
+        print("Failed to load taskers: ${response.body}");
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,25 +63,18 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header Section
             _buildHeader(),
-            Container(height: 35),
-            // Main Content
+            const SizedBox(height: 35),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Search Bar
                     _buildSearchBar(),
                     const SizedBox(height: 25),
-                    
-                    // Categories Section
                     _buildCategoriesSection(),
                     const SizedBox(height: 28),
-                    
-                    // Professionals Section
                     _buildProfessionalsSection(),
                     const SizedBox(height: 25),
                   ],
@@ -64,7 +88,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Header Widget
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -92,7 +115,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Search Bar Widget
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -113,30 +135,29 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Categories Section Widget
   Widget _buildCategoriesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            'Categories',
-            style: _sectionTitleStyle.copyWith(color: _primaryColor),
-          ),
+          child: Text('Categories',
+              style: _sectionTitleStyle.copyWith(color: _primaryColor)),
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 110, // Increased height for better image display
+          height: 110,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
-              return _CategoryCard(
+              return CategoryCard(
                 imagePath: category['image']!,
                 title: category['title']!,
+                backgroundColor: _secondaryColor,
+                textColor: _primaryColor,
               );
             },
           ),
@@ -145,7 +166,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Professionals Section Widget
   Widget _buildProfessionalsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,31 +175,47 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Top Professionals',
-                style: _sectionTitleStyle.copyWith(color: _primaryColor),
-              ),
-              const Text(
-                'View more',
-                style: TextStyle(color: Colors.blue),
-              ),
+              Text('Top Professionals',
+                  style: _sectionTitleStyle.copyWith(color: _primaryColor)),
+              const Text('View more', style: TextStyle(color: Colors.blue)),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        ListView.separated(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: 4, // Example count
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) => const _ProfessionalCard(),
-        ),
+        taskers.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : ListView.separated(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: taskers.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final pro = taskers[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        'taskerDetails',
+                        arguments: {'id': pro.id},
+                      );
+                    },
+                    child: ProfessionalCard(
+                      name: pro.fullName,
+                      job: pro.profession,
+                      location: pro.location,
+                      image: pro.profilePic,
+                      available: pro.isAvailable,
+                      rating: pro.rating,
+                      backgroundColor: _cardBackground,
+                    ),
+                  );
+                },
+              ),
       ],
     );
   }
 
-  // Bottom Navigation Bar Widget
   Widget _buildBottomNavigationBar() {
     return ClipRRect(
       borderRadius: const BorderRadius.only(
@@ -208,150 +244,13 @@ class _HomePageState extends State<HomePage> {
           showUnselectedLabels: false,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Orders'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_bag), label: 'Orders'),
             BottomNavigationBarItem(
                 icon: Icon(Icons.notifications_none), label: 'Notifications'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// Enhanced Category Card Component
-class _CategoryCard extends StatelessWidget {
-  final String imagePath;
-  final String title;
-
-  const _CategoryCard({
-    required this.imagePath,
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 90, // Slightly wider for better image display
-      margin: const EdgeInsets.only(right: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 70,
-            height: 70,
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: _HomePageState._secondaryColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Image.asset(
-              imagePath,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => 
-                  const Icon(Icons.error, color: Colors.red, size: 30),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: _HomePageState._primaryColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Professional Card Component
-class _ProfessionalCard extends StatelessWidget {
-  const _ProfessionalCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _HomePageState._cardBackground,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.grey,
-            backgroundImage: AssetImage("images/men.jpg"),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Mahmoud Ahmed',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Text('Plumber'),
-                const SizedBox(height: 4),
-                Row(
-                  children: const [
-                    Icon(Icons.location_on, size: 14, color: Colors.grey),
-                    SizedBox(width: 4),
-                    Text(
-                      'Bab El Zouar - Algiers',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: const [
-                    Icon(Icons.circle, color: Colors.green, size: 10),
-                    SizedBox(width: 4),
-                    Text(
-                      'Available',
-                      style: TextStyle(color: Colors.green, fontSize: 12),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: List.generate(
-                    4,
-                    (index) => const Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 18,
-                    ),
-                  )..add(
-                      const Icon(Icons.star_half, color: Colors.amber, size: 18),
-                    ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
