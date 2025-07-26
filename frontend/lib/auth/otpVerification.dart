@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:frontend/data/services/auth_service.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   const OtpVerificationPage({Key? key}) : super(key: key);
@@ -17,6 +15,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       List.generate(4, (index) => TextEditingController());
 
   String? tempUserId;
+  bool _isLoading = false;
 
   @override
   void didChangeDependencies() {
@@ -44,39 +43,33 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     );
   }
 
-  void _submitOtp() async {
+  Future<void> _submitOtp() async {
     final otp = _controllers.map((c) => c.text).join();
 
     if (otp.length != 4 || tempUserId == null) {
-      showError('Invalid OTP or user not found');
+      showError('Invalid OTP or user ID');
       return;
     }
 
-    final url = Uri.parse('http://10.93.89.181:5000/api/auth/verify-otp'); 
+    setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': tempUserId, 'otp': otp}),
-      );
+      final authService = AuthService();
+      final result = await authService.verifyOtp(userId: tempUserId!, otp: otp);
 
-      if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        final accessToken = data['accessToken'];
-        final user = data['user'];     
-        Navigator.pushReplacementNamed(context, 'homepage');
+      if (result.containsKey('accessToken') && result.containsKey('user')) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', accessToken);
-        await prefs.setString('userId', user['id']);
-
+        await prefs.setString('accessToken', result['accessToken']);
+        await prefs.setString('userId', result['user']['_id']);
+        Navigator.pushReplacementNamed(context, 'homepage');
       } else {
-        final error = jsonDecode(response.body);
-        showError(error['message'] ?? 'OTP verification failed');
+        showError(result['message'] ?? 'OTP verification failed');
       }
     } catch (e) {
-      print('OTP verify error: $e');
-      showError('Error verifying OTP');
+      showError('Something went wrong. Please try again.');
+      print('OTP verification error: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -117,10 +110,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       backgroundColor: Colors.white,
-      
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -175,7 +165,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                   width: 160,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _submitOtp,
+                    onPressed: _isLoading ? null : _submitOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue[800],
                       shape: RoundedRectangleBorder(
@@ -183,14 +173,18 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                       ),
                       elevation: 2,
                     ),
-                    child: const Text(
-                      'Submit',
-                      style: TextStyle(
-                        color: Color(0xFFFEE2BB),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(
+                            color: Color(0xFFFEE2BB),
+                          )
+                        : const Text(
+                            'Submit',
+                            style: TextStyle(
+                              color: Color(0xFFFEE2BB),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                   ),
                 ),
               ),
