@@ -1,11 +1,8 @@
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:frontend/data/services/chat_service.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-
 
 
 class ChatPage extends StatefulWidget {

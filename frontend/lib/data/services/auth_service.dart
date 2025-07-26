@@ -101,4 +101,39 @@ Future<Map<String, dynamic>> verifyOtp({
   }
 
 
+  Future<bool> refreshAccessToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  final oldRefreshToken = prefs.getString('refreshToken');
+
+  if (oldRefreshToken == null) return false;
+
+  final url = Uri.parse('$baseUrl/refresh-token');
+
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'refreshToken': oldRefreshToken}),
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final newAccessToken = data['accessToken'];
+    final newRefreshToken = data['refreshToken'];
+
+    // Update tokens in SharedPreferences
+    await prefs.setString('accessToken', newAccessToken);
+    await prefs.setString('refreshToken', newRefreshToken);
+
+    return true;
+  } else {
+    // Optional: clear stored tokens if refresh fails
+    await prefs.remove('accessToken');
+    await prefs.remove('refreshToken');
+    await prefs.remove('userId');
+    return false;
+  }
+}
+
+
+
 }
