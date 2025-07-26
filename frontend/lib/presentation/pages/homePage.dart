@@ -1,11 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../data/models/tasker_model.dart';
+import '../../data/services/tasker_service.dart';
 import '../widgets/category_card.dart';
 import '../widgets/professional_card.dart';
-import '../../data/models/tasker_model.dart';
-
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,6 +21,13 @@ class _HomePageState extends State<HomePage> {
     fontWeight: FontWeight.bold,
   );
 
+  final TaskerService _taskerService = TaskerService();
+  List<Tasker> taskers = [];
+  bool isLoading = true;
+  String? errorMessage;
+
+  int _currentIndex = 0;
+
   final List<Map<String, String>> categories = [
     {'image': 'images/icons/plumber.png', 'title': 'Plumber'},
     {'image': 'images/icons/electrecian.png', 'title': 'Electrician'},
@@ -31,28 +35,24 @@ class _HomePageState extends State<HomePage> {
     {'image': 'images/icons/carpenter.png', 'title': 'Carpenter'},
   ];
 
-  List<Tasker> taskers = [];
-
   @override
   void initState() {
     super.initState();
-    fetchTaskers();
+    loadTaskers();
   }
 
-  Future<void> fetchTaskers() async {
-    final url = Uri.parse('http://10.93.89.181:5000/api/taskers/all');
+  Future<void> loadTaskers() async {
     try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        setState(() {
-          taskers = data.map((e) => Tasker.fromJson(e)).toList();
-        });
-      } else {
-        print("Failed to load taskers: ${response.body}");
-      }
+      final result = await _taskerService.getAllTaskers();
+      setState(() {
+        taskers = result;
+        isLoading = false;
+      });
     } catch (e) {
-      print("Error: $e");
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
     }
   }
 
@@ -167,6 +167,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildProfessionalsSection() {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(
+          errorMessage!,
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -182,36 +196,34 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(height: 12),
-        taskers.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: taskers.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final pro = taskers[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        'taskerDetails',
-                        arguments: {'id': pro.id},
-                      );
-                    },
-                    child: ProfessionalCard(
-                      name: pro.fullName,
-                      job: pro.profession,
-                      location: pro.location,
-                      image: pro.profilePic,
-                      available: pro.isAvailable,
-                      rating: pro.rating,
-                      backgroundColor: _cardBackground,
-                    ),
-                  );
-                },
+        ListView.separated(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: taskers.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final pro = taskers[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  'taskerDetails',
+                  arguments: {'id': pro.id},
+                );
+              },
+              child: ProfessionalCard(
+                name: pro.fullName,
+                job: pro.profession,
+                location: pro.location,
+                image: pro.profilePic,
+                available: pro.isAvailable,
+                rating: pro.rating,
+                backgroundColor: _cardBackground,
               ),
+            );
+          },
+        ),
       ],
     );
   }
@@ -238,16 +250,32 @@ class _HomePageState extends State<HomePage> {
           elevation: 0,
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.white.withOpacity(0.7),
-          currentIndex: 0,
+          currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
           showSelectedLabels: false,
           showUnselectedLabels: false,
+          onTap: (index) {
+            if (index == _currentIndex) return;
+
+            setState(() {
+              _currentIndex = index;
+            });
+
+            switch (index) {
+              case 0:
+                Navigator.pushReplacementNamed(context, 'homepage');
+                break;
+              case 1:
+                Navigator.pushReplacementNamed(context, '/orders');
+                break;
+              case 2:
+                Navigator.pushReplacementNamed(context, 'profile');
+                break;
+            }
+          },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.shopping_bag), label: 'Orders'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.notifications_none), label: 'Notifications'),
+            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Orders'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
           ],
         ),
