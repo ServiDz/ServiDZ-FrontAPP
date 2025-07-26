@@ -11,7 +11,7 @@ class CategoryCard extends StatelessWidget {
     required this.imagePath,
     required this.title,
     required this.backgroundColor,
-    required this.textColor,
+    required this.textColor, required Color borderColor, required int elevation,
   });
 
   @override

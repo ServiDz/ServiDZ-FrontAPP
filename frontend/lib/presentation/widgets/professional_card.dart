@@ -17,7 +17,7 @@ class ProfessionalCard extends StatelessWidget {
     required this.image,
     required this.available,
     required this.rating,
-    required this.backgroundColor,
+    required this.backgroundColor, required Color primaryColor, required int elevation, required Null Function() onTap,
   });
 
   @override
