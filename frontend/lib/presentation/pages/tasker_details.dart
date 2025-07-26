@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'chat_page.dart'; // Make sure the path is correct
 
 class TaskerPage extends StatefulWidget {
   final String taskerId;
@@ -48,16 +50,35 @@ class _TaskerPageState extends State<TaskerPage> {
     }
   }
 
+  void navigateToChatPage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+
+    if (userId != null && tasker != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatPage(
+            userId: userId,
+            taskerId: widget.taskerId,
+            taskerName: tasker!['fullName'] ?? 'Tasker',
+            taskerImage: tasker!['profilePic'] ?? '',
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("User ID or tasker data missing.")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: primaryColor,
       body: isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: Colors.white,
-              ),
-            )
+          ? Center(child: CircularProgressIndicator(color: Colors.white))
           : tasker == null
               ? Center(
                   child: Text(
@@ -67,7 +88,6 @@ class _TaskerPageState extends State<TaskerPage> {
                 )
               : Column(
                   children: [
-                    // Top Image + Back Arrow
                     Stack(
                       children: [
                         Container(
@@ -79,11 +99,14 @@ class _TaskerPageState extends State<TaskerPage> {
                               bottomRight: Radius.circular(borderRadius * 2),
                             ),
                           ),
-                          child: tasker!['profilePic'] != null && tasker!['profilePic'] != ""
+                          child: tasker!['profilePic'] != null &&
+                                  tasker!['profilePic'] != ""
                               ? ClipRRect(
                                   borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(borderRadius * 2),
-                                    bottomRight: Radius.circular(borderRadius * 2),
+                                    bottomLeft:
+                                        Radius.circular(borderRadius * 2),
+                                    bottomRight:
+                                        Radius.circular(borderRadius * 2),
                                   ),
                                   child: Image.network(
                                     tasker!['profilePic'],
@@ -92,8 +115,10 @@ class _TaskerPageState extends State<TaskerPage> {
                                 )
                               : ClipRRect(
                                   borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(borderRadius * 2),
-                                    bottomRight: Radius.circular(borderRadius * 2),
+                                    bottomLeft:
+                                        Radius.circular(borderRadius * 2),
+                                    bottomRight:
+                                        Radius.circular(borderRadius * 2),
                                   ),
                                   child: Image.asset(
                                     'images/men.jpg',
@@ -110,7 +135,8 @@ class _TaskerPageState extends State<TaskerPage> {
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
-                              icon: Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                              icon: Icon(Icons.arrow_back,
+                                  color: Colors.white, size: 28),
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
@@ -119,14 +145,17 @@ class _TaskerPageState extends State<TaskerPage> {
                           bottom: 20,
                           left: 20,
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(borderRadius),
+                              borderRadius:
+                                  BorderRadius.circular(borderRadius),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.star, color: primaryColor, size: 18),
+                                Icon(Icons.star,
+                                    color: primaryColor, size: 18),
                                 SizedBox(width: 4),
                                 Text(
                                   tasker!['rating'].toString(),
@@ -142,8 +171,6 @@ class _TaskerPageState extends State<TaskerPage> {
                         ),
                       ],
                     ),
-
-                    // Details
                     Expanded(
                       child: Container(
                         width: double.infinity,
@@ -160,7 +187,8 @@ class _TaskerPageState extends State<TaskerPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     tasker!['fullName'] ?? '',
@@ -172,16 +200,21 @@ class _TaskerPageState extends State<TaskerPage> {
                                   ),
                                   if (tasker!['certification'] != null)
                                     Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 5),
                                       decoration: BoxDecoration(
                                         color: Colors.green,
-                                        borderRadius: BorderRadius.circular(borderRadius),
+                                        borderRadius:
+                                            BorderRadius.circular(borderRadius),
                                       ),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.verified, color: Colors.white, size: 16),
+                                          Icon(Icons.verified,
+                                              color: Colors.white, size: 16),
                                           SizedBox(width: 5),
-                                          Text('Verified', style: TextStyle(color: Colors.white)),
+                                          Text('Verified',
+                                              style: TextStyle(
+                                                  color: Colors.white)),
                                         ],
                                       ),
                                     ),
@@ -192,20 +225,24 @@ class _TaskerPageState extends State<TaskerPage> {
                                 padding: EdgeInsets.all(15),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[50],
-                                  borderRadius: BorderRadius.circular(borderRadius),
-                                  border: Border.all(color: Colors.grey[200]!),
+                                  borderRadius:
+                                      BorderRadius.circular(borderRadius),
+                                  border:
+                                      Border.all(color: Colors.grey[200]!),
                                 ),
                                 child: Column(
                                   children: [
-                                    _infoRow(Icons.work_outline, tasker!['profession'] ?? ''),
+                                    _infoRow(Icons.work_outline,
+                                        tasker!['profession'] ?? ''),
                                     SizedBox(height: 15),
-                                    _infoRow(Icons.location_on, tasker!['location'] ?? ''),
+                                    _infoRow(Icons.location_on,
+                                        tasker!['location'] ?? ''),
                                     SizedBox(height: 15),
-                                    _infoRow(Icons.phone, tasker!['phone'] ?? ''),
+                                    _infoRow(Icons.phone,
+                                        tasker!['phone'] ?? ''),
                                   ],
                                 ),
                               ),
-                              
                               SizedBox(height: 25),
                               Text(
                                 'About Me',
@@ -220,8 +257,10 @@ class _TaskerPageState extends State<TaskerPage> {
                                 padding: EdgeInsets.all(15),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[50],
-                                  borderRadius: BorderRadius.circular(borderRadius),
-                                  border: Border.all(color: Colors.grey[200]!),
+                                  borderRadius:
+                                      BorderRadius.circular(borderRadius),
+                                  border:
+                                      Border.all(color: Colors.grey[200]!),
                                 ),
                                 child: Text(
                                   tasker!['description'] ?? '',
@@ -233,8 +272,6 @@ class _TaskerPageState extends State<TaskerPage> {
                                 ),
                               ),
                               SizedBox(height: 30),
-
-                              // Buttons
                               Row(
                                 children: [
                                   Expanded(
@@ -242,13 +279,18 @@ class _TaskerPageState extends State<TaskerPage> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: primaryColor,
                                         foregroundColor: Colors.white,
-                                        padding: EdgeInsets.symmetric(vertical: 16),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 16),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(borderRadius),
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                                  borderRadius),
                                         ),
                                         elevation: 2,
                                       ),
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        // Book Now button logic
+                                      },
                                       child: Text(
                                         'Book Now',
                                         style: TextStyle(
@@ -264,14 +306,19 @@ class _TaskerPageState extends State<TaskerPage> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.white,
                                         foregroundColor: primaryColor,
-                                        padding: EdgeInsets.symmetric(vertical: 16),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 16),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(borderRadius),
-                                          side: BorderSide(color: primaryColor),
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                                  borderRadius),
+                                          side:
+                                              BorderSide(color: primaryColor),
                                         ),
                                         elevation: 0,
                                       ),
-                                      onPressed: () {},
+                                      onPressed:
+                                          navigateToChatPage, // 👈 Navigate to chat
                                       child: Text(
                                         'Message',
                                         style: TextStyle(
