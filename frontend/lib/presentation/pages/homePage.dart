@@ -157,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                 imagePath: category['image']!,
                 title: category['title']!,
                 backgroundColor: _secondaryColor,
-                textColor: _primaryColor,
+                textColor: _primaryColor, borderColor: Colors.transparent, elevation: 0,
               );
             },
           ),
@@ -219,7 +219,7 @@ class _HomePageState extends State<HomePage> {
                 image: pro.profilePic,
                 available: pro.isAvailable,
                 rating: pro.rating,
-                backgroundColor: _cardBackground,
+                backgroundColor: _cardBackground, primaryColor: _primaryColor, elevation: 0, onTap: () {  },
               ),
             );
           },
