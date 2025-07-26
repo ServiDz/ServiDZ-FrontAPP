@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/presentation/widgets/custom_text_field.dart'; 
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/data/services/auth_service.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -17,70 +15,35 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   bool _isObscured = true;
 
-  void handleLogin() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text;
+void handleLogin() async {
+  final email = emailController.text.trim();
+  final password = passwordController.text;
 
-    final url = Uri.parse('http://10.93.89.181:5000/api/auth/login');
+  final authService = AuthService();
+  final result = await authService.login(email, password);
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final accessToken = data['accessToken'];
-        final refreshToken = data['refreshToken'];
-        final user = data['user'];
-
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userId', user['_id']);
-        await prefs.setString('accessToken', accessToken);
-        await prefs.setString('refreshToken', refreshToken);
-
-        // Navigate to home
-        Navigator.pushReplacementNamed(context, 'homepage');
-      } else {
-        final errorData = jsonDecode(response.body);
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Login Failed'),
-            content: Text(errorData['message'] ?? 'Invalid credentials'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+  if (result['success']) {
+    Navigator.pushReplacementNamed(context, 'homepage');
+  } else {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Login Failed'),
+        content: Text(result['message']),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
-        );
-      }
-    } catch (e) {
-      print('Login error: $e');
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          
-          title: const Text('Error'),
-          content: const Text('Something went wrong. Please try again.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-              
-            ),
-          ],
-        ),
-        
-      );
-    }
+        ],
+      ),
+    );
   }
+}
+
 
   @override
+
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,

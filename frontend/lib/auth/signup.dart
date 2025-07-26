@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/presentation/widgets/custom_text_field.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:frontend/data/services/auth_service.dart';
+
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
@@ -17,6 +19,30 @@ class _SignupPageState extends State<SignupPage> {
   bool _isObscured = true;
 
   String _selectedRole = 'user'; // default value
+  Future<void> handleSignup() async {
+  final name = _nameController.text.trim();
+  final email = _emailController.text.trim();
+  final password = _passwordController.text.trim();
+
+  final authService = AuthService();
+  final result = await authService.signup(
+    name: name,
+    email: email,
+    password: password,
+    role: _selectedRole,
+  );
+
+  if (result['success']) {
+    Navigator.pushNamed(
+      context,
+      'otpVerification',
+      arguments: {'tempUserId': result['tempUserId']},
+    );
+  } else {
+    showError(result['message']);
+  }
+}
+
 
   @override
   void didChangeDependencies() {
@@ -27,43 +53,6 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
-  Future<void> handleSignup() async {
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    final url = Uri.parse('http://10.93.89.181:5000/api/auth/register');
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': name,
-          'email': email,
-          'password': password,
-          'role': _selectedRole,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final tempUserId = data['tempUserId'];
-
-        Navigator.pushNamed(
-          context,
-          'otpVerification',
-          arguments: {'tempUserId': tempUserId},
-        );
-      } else {
-        final error = jsonDecode(response.body);
-        showError(error['message'] ?? 'Signup failed');
-      }
-    } catch (e) {
-      showError('Something went wrong. Try again.');
-      print('Signup error: $e');
-    }
-  }
 
   void showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
