@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/pages/chat/chat_page.dart';
+import 'package:frontend/presentation/pages/chat/chatsList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/auth/login.dart';
 import 'package:frontend/auth/otpVerification.dart';
@@ -65,6 +67,16 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return EditProfilePage(user: args['user']);
         },
+        'chatsList': (context) => ChatsListPage(),
+        'chatDetails': (context) {
+        final args = ModalRoute.of(context)!.settings.arguments as Map;
+        return ChatPage(
+        otherUserId: args['otherUserId'],
+        otherUserName: args['otherUserName'],
+        otherUserAvatar: args['otherUserAvatar'],
+        userId: args['userId'],
+  );
+},
       },
     );
   }

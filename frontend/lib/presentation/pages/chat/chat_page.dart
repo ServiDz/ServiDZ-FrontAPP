@@ -1,21 +1,19 @@
-
 import 'package:flutter/material.dart';
 import 'package:frontend/data/services/chat_service.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 
-
 class ChatPage extends StatefulWidget {
   final String userId;
-  final String taskerId;
-  final String taskerName;
-  final String taskerImage;
+  final String otherUserId;
+  final String otherUserName;
+  final String otherUserAvatar;
 
   const ChatPage({
     required this.userId,
-    required this.taskerId,
-    required this.taskerName,
-    required this.taskerImage,
+    required this.otherUserId,
+    required this.otherUserName,
+    required this.otherUserAvatar,
     Key? key,
   }) : super(key: key);
 
@@ -41,7 +39,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    chatService = ChatService(userId: widget.userId, taskerId: widget.taskerId);
+    chatService = ChatService(userId: widget.userId, taskerId: widget.otherUserId);
     fetchMessages();
     connectSocket();
     SystemChrome.setSystemUIOverlayStyle(
@@ -159,8 +157,8 @@ class _ChatPageState extends State<ChatPage> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage: widget.taskerImage.isNotEmpty
-                  ? NetworkImage(widget.taskerImage)
+              backgroundImage: widget.otherUserAvatar.isNotEmpty
+                  ? NetworkImage(widget.otherUserAvatar)
                   : const AssetImage('images/men.jpg') as ImageProvider,
               radius: 18,
             ),
@@ -169,7 +167,7 @@ class _ChatPageState extends State<ChatPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.taskerName,
+                  widget.otherUserName,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -217,10 +215,8 @@ class _ChatPageState extends State<ChatPage> {
                                   },
                                 ),
                                 ListTile(
-                                  leading:
-                                      const Icon(Icons.delete_outline, color: Colors.red),
-                                  title: const Text('Delete',
-                                      style: TextStyle(color: Colors.red)),
+                                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                                  title: const Text('Delete', style: TextStyle(color: Colors.red)),
                                   onTap: () {
                                     Navigator.pop(context);
                                     deleteMessage(index);
@@ -233,8 +229,7 @@ class _ChatPageState extends State<ChatPage> {
                   child: isEditing
                       ? _buildEditMessage(index)
                       : Align(
-                          alignment:
-                              isMe ? Alignment.centerRight : Alignment.centerLeft,
+                          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 4),
                             padding: const EdgeInsets.all(10),
@@ -243,15 +238,13 @@ class _ChatPageState extends State<ChatPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
-                              crossAxisAlignment: isMe
-                                  ? CrossAxisAlignment.end
-                                  : CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   msg['message'],
                                   style: TextStyle(
-                                    color:
-                                        isMe ? Colors.white : Colors.black87,
+                                    color: isMe ? Colors.white : Colors.black87,
                                   ),
                                 ),
                                 const SizedBox(height: 4),

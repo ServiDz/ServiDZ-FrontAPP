@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'chat_page.dart'; // Make sure the path is correct
+// Make sure the path is correct
 
 class TaskerPage extends StatefulWidget {
   final String taskerId;
@@ -50,28 +50,30 @@ class _TaskerPageState extends State<TaskerPage> {
     }
   }
 
-  void navigateToChatPage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
+void navigateToChatPage() async {
+  final prefs = await SharedPreferences.getInstance();
+  final userId = prefs.getString('userId');
 
-    if (userId != null && tasker != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ChatPage(
-            userId: userId,
-            taskerId: widget.taskerId,
-            taskerName: tasker!['fullName'] ?? 'Tasker',
-            taskerImage: tasker!['profilePic'] ?? '',
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User ID or tasker data missing.")),
-      );
-    }
+  if (userId != null && tasker != null) {
+    Navigator.pushNamed(
+      context,
+      'chatDetails',
+      arguments: {
+        'userId': userId,
+        'otherUserId':  widget.taskerId,
+        'otherUserName':tasker!['fullName'] ?? 'Tasker',
+        'otherUserAvatar': tasker!['profilePic'] ?? '',
+      },
+    );
+  } else {
+    print("User ID or tasker data missing.");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("User ID or tasker data missing.")),
+      
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

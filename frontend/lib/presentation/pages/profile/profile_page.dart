@@ -7,8 +7,6 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -22,46 +20,46 @@ class _ProfilePageState extends State<ProfilePage> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
+  int _currentIndex = 2; // Profile tab
+  final Color _primaryColor = const Color(0xFF00386F);
+
   @override
   void initState() {
     super.initState();
     fetchUserProfile();
   }
 
- Future<void> fetchUserProfile() async {
-  print('🟡 fetchUserProfile called');
-  final userData = await ProfileService.fetchUserProfile();
-  if (userData != null) {
-    print('🟢 User fetched: $userData');
-    setState(() {
-      user = userData;
-      isLoading = false;
-    });
-  } else {
-    setState(() => isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Failed to load profile")),
-    );
+  Future<void> fetchUserProfile() async {
+    final userData = await ProfileService.fetchUserProfile();
+    if (userData != null) {
+      setState(() {
+        user = userData;
+        isLoading = false;
+      });
+    } else {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to load profile")),
+      );
+    }
   }
-}
 
-Future<void> pickAndUploadImage() async {
-  final imageFile = await ProfileService.pickImage();
-  if (imageFile == null) return;
+  Future<void> pickAndUploadImage() async {
+    final imageFile = await ProfileService.pickImage();
+    if (imageFile == null) return;
 
-  final success = await ProfileService.uploadAvatar(imageFile);
-  if (success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Profile image updated")),
-    );
-    fetchUserProfile();
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Failed to update avatar")),
-    );
+    final success = await ProfileService.uploadAvatar(imageFile);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile image updated")),
+      );
+      fetchUserProfile();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to update avatar")),
+      );
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -92,9 +90,7 @@ Future<void> pickAndUploadImage() async {
                         ListTile(
                           leading: const Icon(Icons.language),
                           title: const Text('Change Language'),
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
+                          onTap: () => Navigator.pop(context),
                         ),
                         ListTile(
                           leading: const Icon(Icons.brightness_6),
@@ -127,10 +123,10 @@ Future<void> pickAndUploadImage() async {
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline, size: 50, color: Colors.red),
-                      const SizedBox(height: 16),
-                      const Text("User not found"),
+                    children: const [
+                      Icon(Icons.error_outline, size: 50, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text("User not found"),
                     ],
                   ),
                 )
@@ -164,10 +160,9 @@ Future<void> pickAndUploadImage() async {
                             ),
                           ),
                           Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF00386F),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF00386F),
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFF00386F), width: 3),
                             ),
                             child: IconButton(
                               icon: const Icon(Icons.camera_alt, size: 20),
@@ -212,6 +207,7 @@ Future<void> pickAndUploadImage() async {
                     ],
                   ),
                 ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -242,7 +238,8 @@ Future<void> pickAndUploadImage() async {
     );
   }
 
-  Widget _buildProfileItem(BuildContext context, {
+  Widget _buildProfileItem(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String value,
@@ -266,6 +263,61 @@ Future<void> pickAndUploadImage() async {
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(20),
+        topRight: Radius.circular(20),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: _primaryColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white.withOpacity(0.7),
+          currentIndex: _currentIndex,
+          type: BottomNavigationBarType.fixed,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          onTap: (index) {
+            if (index == _currentIndex) return;
+
+            setState(() {
+              _currentIndex = index;
+            });
+
+            switch (index) {
+              case 0:
+                Navigator.pushReplacementNamed(context, 'homepage');
+                break;
+              case 1:
+                Navigator.pushReplacementNamed(context, 'chatsList');
+                break;
+              case 2:
+                Navigator.pushReplacementNamed(context, 'profile');
+                break;
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Orders'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
+          ],
+        ),
+      ),
     );
   }
 }
