@@ -266,7 +266,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pushReplacementNamed(context, 'homepage');
                 break;
               case 1:
-                Navigator.pushReplacementNamed(context, '/orders');
+                Navigator.pushReplacementNamed(context, 'chatsList');
                 break;
               case 2:
                 Navigator.pushReplacementNamed(context, 'profile');
