@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/pages/booking/booking_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 // Make sure the path is correct
@@ -291,8 +292,26 @@ void navigateToChatPage() async {
                                         elevation: 2,
                                       ),
                                       onPressed: () {
-                                        // Book Now button logic
-                                      },
+                                      if (tasker != null) {
+                                      Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                      builder: (_) => BookingPage(
+                                      tasker?['_id'] ?? '', // Provide the required positional argument
+                                      userName: tasker!['fullName'] ?? 'Tasker',
+                                      userImage: tasker!['profilePic'] ?? '',
+                                      role: tasker!['profession'] ?? '',
+                                      taskerId: tasker!['_id'] ?? '',
+                                      ),
+                                      ),
+                                      );
+                                  } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Tasker data not loaded.")),
+                                  );
+  }
+},
+
                                       child: Text(
                                         'Book Now',
                                         style: TextStyle(
