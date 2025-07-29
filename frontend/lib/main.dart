@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:frontend/presentation/pages/chat/chat_page.dart';
 import 'package:frontend/presentation/pages/chat/chatsList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:frontend/auth/login.dart';
-import 'package:frontend/auth/otpVerification.dart';
-import 'package:frontend/auth/signup.dart';
+import 'package:frontend/presentation/pages/auth/login.dart';
+import 'package:frontend/presentation/pages/auth/otpVerification.dart';
+import 'package:frontend/presentation/pages/auth/signup.dart';
 import 'package:frontend/presentation/pages/RoleSelection.dart';
 import 'package:frontend/presentation/pages/getStarted.dart';
 import 'package:frontend/presentation/pages/homePage.dart';
 import 'package:frontend/presentation/pages/profile/edit_profile_page.dart';
 import 'package:frontend/presentation/pages/profile/profile_page.dart';
 import 'package:frontend/presentation/pages/tasker_details.dart';
-import 'package:frontend/data/services/auth_service.dart'; // <-- make sure this path is correct
+import 'package:frontend/data/services/auth_service.dart'; 
+import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,8 +76,9 @@ class MyApp extends StatelessWidget {
         otherUserName: args['otherUserName'],
         otherUserAvatar: args['otherUserAvatar'],
         userId: args['userId'],
-  );
-},
+        );
+        },
+        'bookingConfirmed': (context) => const BookingConfirmedPage(),
       },
     );
   }
