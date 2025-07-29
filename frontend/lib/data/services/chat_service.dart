@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ChatService {
-  final String userId;
+  String userId;
   final String taskerId;
   late IO.Socket socket;
 
@@ -95,4 +96,103 @@ class ChatService {
     socket.disconnect();
     socket.dispose();
   }
+
+
+  Future<List<Map<String, dynamic>>> loadUserIdAndFetchChats() async {
+  final prefs = await SharedPreferences.getInstance();
+  final storedUserId = prefs.getString('userId');
+  userId = storedUserId ?? "";
+
+  if (storedUserId != null) {
+    final response = await http.post(
+      Uri.parse('http://10.93.89.181:5000/api/chat/chat-list'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'userId': storedUserId}),
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => Map<String, dynamic>.from(e)).toList();
+    } else {
+      print("❌ Failed to fetch chats: ${response.statusCode}");
+    }
+  }
+  return [];
+}
+
+Future<void> markAsRead(String otherUserId, String chatId) async {
+  if (userId.isEmpty) return;
+
+  final res = await http.put(
+    Uri.parse('http://10.93.89.181:5000/api/chat/mark-read'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'userId': userId,
+      'otherUserId': otherUserId,
+    }),
+  );
+
+  if (res.statusCode == 200) {
+    print("✅ Marked as read: $otherUserId");
+  } else {
+    print("❌ Failed to mark as read: ${res.statusCode}");
+  }
+}
+
+// ✅ Static helper to load userId and fetch chats
+  static Future<String?> getUserIdFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId');
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchChatList(String userId) async {
+    final response = await http.post(
+      Uri.parse('http://10.93.89.181:5000/api/chat/chat-list'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'userId': userId}),
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => Map<String, dynamic>.from(e)).toList();
+    } else {
+      print("❌ Failed to fetch chats: ${response.statusCode}");
+      return [];
+    }
+  }
+
+
+Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+  print("Searching users for query: $query");
+
+  final url = 'http://10.93.89.181:5000/api/chat/search-users?query=$query';
+  print("Sending GET request to: $url");
+
+  final response = await http.get(Uri.parse(url));
+
+  print("Received status code: ${response.statusCode}");
+
+  if (response.statusCode == 200) {
+    print("Response body: ${response.body}");
+
+    final List<dynamic> users = jsonDecode(response.body);
+
+    final results = users.map((user) => {
+      'userId': user['_id'],
+      'name': user['fullName'],
+      'avatar': user['profilePic'],
+    }).toList();
+
+    print("Parsed ${results.length} users.");
+    return results;
+  } else {
+    print("Error: ${response.statusCode}, Body: ${response.body}");
+    throw Exception('Failed to search users');
+  }
+}
+
+
+
+
+  
 }

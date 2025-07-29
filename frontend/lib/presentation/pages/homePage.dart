@@ -219,7 +219,7 @@ class _HomePageState extends State<HomePage> {
                 image: pro.profilePic,
                 available: pro.isAvailable,
                 rating: pro.rating,
-                backgroundColor: _cardBackground, primaryColor: _primaryColor, elevation: 0, onTap: () {  },
+                backgroundColor: _cardBackground, primaryColor: _primaryColor, elevation: 0, onTap: () {  }, accentColor: _secondaryColor,
               ),
             );
           },

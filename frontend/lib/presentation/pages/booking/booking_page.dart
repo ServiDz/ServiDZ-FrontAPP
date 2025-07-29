@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/data/services/booking_service.dart';
 import 'package:frontend/presentation/pages/booking/location_picker_page.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class BookingPage extends StatefulWidget {
   final String userName;
@@ -40,66 +38,45 @@ class _BookingPageState extends State<BookingPage> {
   }
 
 
- Future<void> submitBooking() async {
+Future<void> submitBooking() async {
   final prefs = await SharedPreferences.getInstance();
   final userId = prefs.getString('userId');
 
-  final apiUrl = 'http://10.93.89.181:5000/api/bookings/create';
-  print("🧠 Loaded userId from SharedPreferences: $userId");
-
-  if (userId == null || widget.taskerId.isEmpty) {
-    print("❌ Missing userId or taskerId");
+  if (userId == null || widget.taskerId.isEmpty || selectedDate == null || selectedTime == null || selectedLocation == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Missing user or tasker info')),
+      const SnackBar(content: Text('Please complete all fields')),
     );
     return;
   }
 
   try {
-    print("📤 Sending booking request with:");
-    print("User ID: $userId");
-    print("Tasker ID: ${widget.taskerId}");
-    print("Date: ${selectedDate!.toIso8601String()}");
-    print("Time: ${selectedTime!.format(context)}");
-    print("Location: Lat=${selectedLocation!.latitude}, Lng=${selectedLocation!.longitude}, Address=${formattedLocation}");
-    print("Description: ${_problemController.text.trim()}");
-
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'userId': userId,
-        'taskerId': widget.taskerId,
-        'date': selectedDate!.toIso8601String(),
-        'time': selectedTime!.format(context),
-        'location': {
-          'latitude': selectedLocation!.latitude,
-          'longitude': selectedLocation!.longitude,
-          'address': formattedLocation ?? '',
-        },
-        'description': _problemController.text.trim(),
-      }),
+    final response = await BookingService.createBooking(
+      userId: userId,
+      taskerId: widget.taskerId,
+      date: selectedDate!,
+      time: selectedTime!.format(context),
+      location: selectedLocation!,
+      address: formattedLocation ?? '',
+      description: _problemController.text.trim(),
     );
-
-    print("📥 Response status: ${response.statusCode}");
-    print("📥 Response body: ${response.body}");
 
     if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Booking successful')),
       );
+      Navigator.pushNamed(context, 'bookingConfirmed');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Booking failed: ${response.body}')),
       );
     }
   } catch (e) {
-    print("❌ Error while booking: $e");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error: $e')),
     );
   }
 }
+
 
 
   Future<void> _pickDate() async {
@@ -528,35 +505,6 @@ child: ElevatedButton(
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
   
   primaryButtonStyle() {
      return const TextStyle(
