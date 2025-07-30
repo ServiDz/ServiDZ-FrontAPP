@@ -14,15 +14,16 @@ class _ChatsListPageState extends State<ChatsListPage> {
   List<Map<String, dynamic>> searchResults = [];
   bool isSearching = false;
   String userId = "";
-  int _currentIndex = 1; // Highlight the chat tab
+  int _currentIndex = 1;
   final TextEditingController _searchController = TextEditingController();
 
-  // Colors
-  final Color _primaryColor = Colors.blue[900]!;
-  final Color _unreadColor = Colors.blue[900]!;
-  final Color _readColor = Colors.white;
-  final Color _subtitleColor = Colors.grey;
-  final Color _searchBackground = Colors.grey[200]!;
+  // Updated color scheme
+  final Color _primaryColor = const Color(0xFF2563EB);
+  final Color _backgroundColor = const Color(0xFFF8FAFC);
+  final Color _cardColor = Colors.white;
+  final Color _unreadColor = const Color(0xFF2563EB);
+  final Color _subtitleColor = const Color(0xFF64748B);
+  final Color _searchBackground = const Color(0xFFF1F5F9);
 
   @override
   void initState() {
@@ -109,8 +110,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
     }
 
     return ListView.separated(
+      padding: const EdgeInsets.only(top: 8),
       itemCount: chatList.length,
-      separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[300]),
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final chat = chatList[index];
         final latestMessage = chat["messages"].isNotEmpty ? chat["messages"][0] : {};
@@ -119,15 +121,35 @@ class _ChatsListPageState extends State<ChatsListPage> {
         );
 
         return Container(
-          color: hasUnread ? _unreadColor.withOpacity(0.1) : _readColor,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: _cardColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              radius: 28,
-              backgroundImage: NetworkImage(chat["avatar"] ?? ""),
-              backgroundColor: Colors.grey.shade300,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            leading: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey.shade200,
+                image: chat["avatar"] != null 
+                    ? DecorationImage(
+                        image: NetworkImage(chat["avatar"]),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
               child: chat["avatar"] == null 
-                  ? Icon(Icons.person, size: 28, color: Colors.grey[600])
+                  ? Icon(Icons.person, size: 24, color: Colors.grey.shade600)
                   : null,
             ),
             title: Text(
@@ -164,8 +186,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
                 if (hasUnread)
                   Container(
                     margin: const EdgeInsets.only(top: 4),
-                    width: 10,
-                    height: 10,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
                       color: _primaryColor,
                       shape: BoxShape.circle,
@@ -191,105 +213,129 @@ class _ChatsListPageState extends State<ChatsListPage> {
     }
 
     return ListView.separated(
+      padding: const EdgeInsets.only(top: 8),
       itemCount: searchResults.length,
-      separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[300]),
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final user = searchResults[index];
 
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          leading: CircleAvatar(
-            radius: 24,
-            backgroundImage: NetworkImage(user['avatar'] ?? ""),
-            backgroundColor: Colors.grey[300],
-            child: user['avatar'] == null 
-                ? Icon(Icons.person, size: 24, color: Colors.grey[600])
-                : null,
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: _cardColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          title: Text(
-            user['name'] ?? 'User',
-            style: const TextStyle(fontWeight: FontWeight.w600),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            leading: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey.shade200,
+                image: user['avatar'] != null 
+                    ? DecorationImage(
+                        image: NetworkImage(user['avatar']),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: user['avatar'] == null 
+                  ? Icon(Icons.person, size: 24, color: Colors.grey.shade600)
+                  : null,
+            ),
+            title: Text(
+              user['name'] ?? 'User',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            onTap: () => _navigateToChatPage(user),
           ),
-          onTap: () => _navigateToChatPage(user),
         );
       },
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(20),
-        topRight: Radius.circular(20),
+ Widget _buildBottomNavigationBar() {
+  return ClipRRect(
+    borderRadius: const BorderRadius.only(
+      topLeft: Radius.circular(20),
+      topRight: Radius.circular(20),
+    ),
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.blue[900], // Fixed color
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _primaryColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white.withOpacity(0.7),
-          currentIndex: _currentIndex,
-          type: BottomNavigationBarType.fixed,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          onTap: (index) {
-            if (index == _currentIndex) return;
+      child: BottomNavigationBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white.withOpacity(0.7),
+        currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        onTap: (index) {
+          if (index == _currentIndex) return;
 
-            setState(() {
-              _currentIndex = index;
-            });
+          setState(() {
+            _currentIndex = index;
+          });
 
-            switch (index) {
-              case 0:
-                Navigator.pushReplacementNamed(context, 'homepage');
-                break;
-              case 1:
-                Navigator.pushReplacementNamed(context, 'chatsList');
-                break;
-              case 2:
-                Navigator.pushReplacementNamed(context, 'profile');
-                break;
-            }
-          },
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Orders'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
-          ],
-        ),
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, 'homepage');
+              break;
+            case 1:
+              Navigator.pushReplacementNamed(context, 'chatsList');
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, 'profile');
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _backgroundColor,
       appBar: AppBar(
-        // leading: const SizedBox.shrink(),
         title: Text(
           'Messages',
           style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: _primaryColor,
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: Colors.blue[900],
           ),
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: [
           IconButton(
-            icon: Icon(Icons.edit, color: _primaryColor),
+            icon: Icon(Icons.edit, color: Colors.blue[900]),
             onPressed: () {
               // Add your edit functionality here
             },
@@ -300,22 +346,24 @@ class _ChatsListPageState extends State<ChatsListPage> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search users...',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                filled: true,
-                fillColor: Color(0x1A00386F)
-,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: _searchBackground,
+                borderRadius: BorderRadius.circular(12),
               ),
-              onChanged: _searchUsers,
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search users...',
+                  hintStyle: TextStyle(color: _subtitleColor),
+                  prefixIcon: Icon(Icons.search, color: _subtitleColor),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onChanged: _searchUsers,
+              ),
             ),
           ),
           Expanded(

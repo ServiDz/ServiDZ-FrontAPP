@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../data/models/tasker_model.dart';
 import '../../data/services/tasker_service.dart';
+import '../../data/services/profile_service.dart'; // ✅ Add this
 import '../widgets/category_card.dart';
 import '../widgets/professional_card.dart';
 
@@ -28,6 +33,8 @@ class _HomePageState extends State<HomePage> {
 
   int _currentIndex = 0;
 
+  Map<String, dynamic>? userProfile; // ✅ Add this
+
   final List<Map<String, String>> categories = [
     {'image': 'images/icons/plumber.png', 'title': 'Plumber'},
     {'image': 'images/icons/electrecian.png', 'title': 'Electrician'},
@@ -39,6 +46,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     loadTaskers();
+    loadUserProfile(); // ✅ Load user profile
   }
 
   Future<void> loadTaskers() async {
@@ -56,6 +64,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> loadUserProfile() async {
+    final profile = await ProfileService.fetchUserProfile();
+    if (profile != null) {
+      setState(() {
+        userProfile = profile;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,16 +80,17 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
-            const SizedBox(height: 35),
+            const SizedBox(height: 20),
+            _buildProfileRow(), // ✅ Will use userProfile if available
+            const SizedBox(height: 20),
+            _buildSearchBarWithMenu(),
+            const SizedBox(height: 25),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSearchBar(),
-                    const SizedBox(height: 25),
                     _buildCategoriesSection(),
                     const SizedBox(height: 28),
                     _buildProfessionalsSection(),
@@ -88,49 +106,100 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: _primaryColor,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
-      ),
+  Widget _buildProfileRow() {
+    final name = userProfile?['name'] ?? 'Ikram Messaoud';
+    final imageUrl = userProfile?['avatar'] ?? '';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          Text(
-            'Home',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+        children: [
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: _primaryColor.withOpacity(0.2)),
+                ),
+                child: CircleAvatar(
+                  radius: 22,
+                  backgroundImage: imageUrl.isNotEmpty
+                      ? NetworkImage(imageUrl)
+                      : const AssetImage('images/profile.jpg') as ImageProvider,
+                ),
+              ),
+              const SizedBox(width: 15),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Hi', style: TextStyle(fontSize: 14)),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          Icon(Icons.notifications_none, color: Colors.white),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _primaryColor.withOpacity(0.1),
+            ),
+            child: const Icon(Icons.notifications_none, color: _primaryColor),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBarWithMenu() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Search for service...',
-          hintStyle: TextStyle(color: _hintTextColor, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: Color(0xFFB3B3B3)),
-          filled: true,
-          fillColor: _primaryColor.withOpacity(0.1),
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF00386F).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search for service...',
+                  hintStyle:
+                      const TextStyle(color: _hintTextColor, fontSize: 14),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 16),
+                  border: InputBorder.none,
+                  prefixIcon:
+                      const Icon(Icons.search, color: _hintTextColor),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.mic, color: _primaryColor),
+                    onPressed: () {},
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+          const SizedBox(width: 10),
+          Container(
+            height: 45,
+            width: 45,
+            decoration: BoxDecoration(
+              color: _primaryColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.menu, color: Colors.white),
+          ),
+        ],
       ),
     );
   }
@@ -149,15 +218,20 @@ class _HomePageState extends State<HomePage> {
           height: 110,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 13),
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
-              return CategoryCard(
-                imagePath: category['image']!,
-                title: category['title']!,
-                backgroundColor: _secondaryColor,
-                textColor: _primaryColor, borderColor: Colors.transparent, elevation: 0,
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: CategoryCard(
+                  imagePath: category['image']!,
+                  title: category['title']!,
+                  backgroundColor: const Color(0xFF00386F).withOpacity(0.1),
+                  textColor: _primaryColor,
+                  borderColor: Colors.transparent,
+                  elevation: 0,
+                ),
               );
             },
           ),
@@ -189,9 +263,11 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Top Professionals',
-                  style: _sectionTitleStyle.copyWith(color: _primaryColor)),
-              const Text('View more', style: TextStyle(color: Colors.blue)),
+              Text(
+                'Top Professionals',
+                style: _sectionTitleStyle.copyWith(color: _primaryColor),
+              ),
+              const Text('view more', style: TextStyle(color: Colors.blue)),
             ],
           ),
         ),
@@ -204,6 +280,7 @@ class _HomePageState extends State<HomePage> {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final pro = taskers[index];
+
             return GestureDetector(
               onTap: () {
                 Navigator.pushNamed(
@@ -212,14 +289,95 @@ class _HomePageState extends State<HomePage> {
                   arguments: {'id': pro.id},
                 );
               },
-              child: ProfessionalCard(
-                name: pro.fullName,
-                job: pro.profession,
-                location: pro.location,
-                image: pro.profilePic,
-                available: pro.isAvailable,
-                rating: pro.rating,
-                backgroundColor: _cardBackground, primaryColor: _primaryColor, elevation: 0, onTap: () {  }, accentColor: _secondaryColor,
+              child: Card(
+                color: _cardBackground,
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          pro.profilePic,
+                          width: 100,
+                          height: 120,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.person, size: 90),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              pro.fullName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.build, size: 16),
+                                const SizedBox(width: 6),
+                                Text(pro.profession),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on, size: 16),
+                                const SizedBox(width: 6),
+                                Text(pro.location),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(Icons.circle,
+                                    size: 10,
+                                    color: pro.isAvailable
+                                        ? Colors.green
+                                        : Colors.red),
+                                const SizedBox(width: 6),
+                                Text(
+                                  pro.isAvailable
+                                      ? 'Available'
+                                      : 'Unavailable',
+                                  style: TextStyle(
+                                    color: pro.isAvailable
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: List.generate(
+                                5,
+                                (i) => Icon(
+                                  Icons.star,
+                                  size: 18,
+                                  color: i < pro.rating.round()
+                                      ? Colors.orange
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             );
           },
@@ -283,4 +441,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
