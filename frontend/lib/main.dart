@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/pages/auth/Tasker_singup.dart';
 import 'package:frontend/presentation/pages/chat/chat_page.dart';
 import 'package:frontend/presentation/pages/chat/chatsList.dart';
+import 'package:frontend/presentation/pages/taskerHomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/presentation/pages/auth/login.dart';
 import 'package:frontend/presentation/pages/auth/otpVerification.dart';
@@ -24,7 +26,8 @@ void main() async {
 
   String initialRoute = '/';
 
-  // If tokens exist, try to refresh
+  // Comment out refresh token logic
+  /*
   if (accessToken != null && refreshToken != null && userId != null) {
     final authService = AuthService();
     bool refreshed = await authService.refreshAccessToken();
@@ -32,15 +35,19 @@ void main() async {
     if (refreshed) {
       initialRoute = 'homepage';
     } else {
-      // If refresh fails, go to login
       initialRoute = 'login';
     }
   } else {
     initialRoute = 'login';
   }
+  */
+
+  // Force start at login page for testing
+  initialRoute = '/';
 
   runApp(MyApp(initialRoute: initialRoute));
 }
+
 
 class MyApp extends StatelessWidget {
   final String initialRoute;
@@ -56,7 +63,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => GetStartedPage(),
         'roleSelection': (context) => const RoleSelectionPage(),
         'login': (context) => const LoginPage(),
-        '/signup': (context) => const SignupPage(),
+        'signup': (context) => const SignupPage(),
         'otpVerification': (context) => const OtpVerificationPage(),
         'homepage': (context) => HomePage(),
         'taskerDetails': (context) {
@@ -79,6 +86,8 @@ class MyApp extends StatelessWidget {
         );
         },
         'bookingConfirmed': (context) => const BookingConfirmedPage(),
+        'taskerRegister': (context) => const TaskerRegisterPage(),
+        'taskerhomepage': (context) => const TaskerHomePage(),
       },
     );
   }
