@@ -149,5 +149,23 @@ Future<Map<String, dynamic>> verifyOtp({
 }
 
 
+// Tasker Registration
+
+ Future<Map<String, dynamic>> registerTasker(Map<String, String> taskerData) async {
+    final response = await http.post(
+      Uri.parse('http://10.93.89.181:5000/api/tasker/auth/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(taskerData),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return {'success': true, 'tempTaskerId': data['tempTaskerId']};
+    } else {
+      return {'success': false, 'message': data['message'] ?? 'Registration failed.'};
+    }
+  }
+
 
 }
