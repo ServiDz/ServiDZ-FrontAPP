@@ -13,7 +13,6 @@ import 'package:frontend/presentation/pages/homePage.dart';
 import 'package:frontend/presentation/pages/profile/edit_profile_page.dart';
 import 'package:frontend/presentation/pages/profile/profile_page.dart';
 import 'package:frontend/presentation/pages/tasker_details.dart';
-import 'package:frontend/data/services/auth_service.dart'; 
 import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
 
 void main() async {
@@ -26,28 +25,11 @@ void main() async {
 
   String initialRoute = '/';
 
-  // Comment out refresh token logic
-  /*
-  if (accessToken != null && refreshToken != null && userId != null) {
-    final authService = AuthService();
-    bool refreshed = await authService.refreshAccessToken();
-
-    if (refreshed) {
-      initialRoute = 'homepage';
-    } else {
-      initialRoute = 'login';
-    }
-  } else {
-    initialRoute = 'login';
-  }
-  */
-
-  // Force start at login page for testing
+  // Force start at login page for now
   initialRoute = '/';
 
   runApp(MyApp(initialRoute: initialRoute));
 }
-
 
 class MyApp extends StatelessWidget {
   final String initialRoute;
@@ -77,21 +59,18 @@ class MyApp extends StatelessWidget {
         },
         'chatsList': (context) => ChatsListPage(),
         'chatDetails': (context) {
-        final args = ModalRoute.of(context)!.settings.arguments as Map;
-        return ChatPage(
-        otherUserId: args['otherUserId'],
-        otherUserName: args['otherUserName'],
-        otherUserAvatar: args['otherUserAvatar'],
-        userId: args['userId'],
-        );
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return ChatPage(
+            otherUserId: args['otherUserId'],
+            otherUserName: args['otherUserName'],
+            otherUserAvatar: args['otherUserAvatar'],
+            userId: args['userId'],
+          );
         },
         'bookingConfirmed': (context) => const BookingConfirmedPage(),
         'taskerRegister': (context) => const TaskerRegisterPage(),
-        'taskerhomepage': (context) => const TaskerHomePage(),
+        'taskerHomePage': (context) => const TaskerHomePage(), // ✅ Fixed naming
       },
     );
   }
 }
-
-
-

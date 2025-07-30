@@ -44,9 +44,19 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
   }
 
   void showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger != null) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else {
+      print('⚠️ ScaffoldMessenger not found');
+    }
   }
 
   Future<void> _submitOtp() async {
@@ -81,10 +91,12 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
         if (role == 'tasker') {
           await prefs.setString('taskerId', result['user']['_id']);
           print('🚀 Navigating to taskerHomePage');
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, 'taskerHomePage');
         } else {
           await prefs.setString('userId', result['user']['_id']);
           print('🚀 Navigating to userHomePage');
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, 'userHomePage');
         }
       } else {
@@ -95,7 +107,9 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       showError('Something went wrong. Please try again.');
       print('⚠️ OTP verification error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
