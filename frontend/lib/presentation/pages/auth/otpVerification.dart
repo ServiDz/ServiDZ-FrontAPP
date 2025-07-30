@@ -15,6 +15,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       List.generate(4, (index) => TextEditingController());
 
   String? tempUserId;
+  String? role;
   bool _isLoading = false;
 
   @override
@@ -23,6 +24,11 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     final args = ModalRoute.of(context)?.settings.arguments as Map?;
     if (args != null) {
       tempUserId = args['tempUserId'];
+      role = args['role'] ?? 'user';
+
+      print('✅ OTP Page args: tempUserId = $tempUserId, role = $role');
+    } else {
+      print('⚠️ No arguments received in OTP page');
     }
   }
 
@@ -38,16 +44,31 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
   }
 
   void showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger != null) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else {
+      print('⚠️ ScaffoldMessenger not found');
+    }
   }
 
   Future<void> _submitOtp() async {
     final otp = _controllers.map((c) => c.text).join();
 
-    if (otp.length != 4 || tempUserId == null) {
+    print('📩 Entered OTP: $otp');
+    print('🔑 TempUserId: $tempUserId');
+    print('👤 Role: $role');
+
+    if (otp.length != 4 || tempUserId == null || role == null) {
       showError('Invalid OTP or user ID');
+      print('❌ OTP submission failed: invalid input');
       return;
     }
 
@@ -55,21 +76,40 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
     try {
       final authService = AuthService();
-      final result = await authService.verifyOtp(userId: tempUserId!, otp: otp);
+      final result = await authService.verifyOtp(
+        userId: tempUserId!,
+        otp: otp,
+        role: role!,
+      );
+
+      print('✅ OTP verification result: $result');
 
       if (result.containsKey('accessToken') && result.containsKey('user')) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('accessToken', result['accessToken']);
-        await prefs.setString('userId', result['user']['_id']);
-        Navigator.pushReplacementNamed(context, 'homepage');
+
+        if (role == 'tasker') {
+          await prefs.setString('taskerId', result['user']['_id']);
+          print('🚀 Navigating to taskerHomePage');
+          if (!mounted) return;
+          Navigator.pushReplacementNamed(context, 'taskerHomePage');
+        } else {
+          await prefs.setString('userId', result['user']['_id']);
+          print('🚀 Navigating to userHomePage');
+          if (!mounted) return;
+          Navigator.pushReplacementNamed(context, 'userHomePage');
+        }
       } else {
         showError(result['message'] ?? 'OTP verification failed');
+        print('❌ OTP verification failed: ${result['message']}');
       }
     } catch (e) {
       showError('Something went wrong. Please try again.');
-      print('OTP verification error: $e');
+      print('⚠️ OTP verification error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -117,7 +157,6 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back Button
               IconButton(
                 icon: Icon(Icons.arrow_back, color: Colors.blue[800]),
                 onPressed: () {
@@ -125,8 +164,6 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 },
               ),
               const SizedBox(height: 20),
-
-              // Title
               Center(
                 child: Text(
                   'Email Verification',
@@ -138,8 +175,6 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 ),
               ),
               const SizedBox(height: 8),
-
-              // Subtitle
               Center(
                 child: Text(
                   'Please enter your OTP code to continue',
@@ -151,15 +186,11 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // OTP Fields
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(4, (index) => _buildOtpBox(index)),
               ),
               const SizedBox(height: 40),
-
-              // Submit Button
               Center(
                 child: SizedBox(
                   width: 160,

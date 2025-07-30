@@ -4,13 +4,10 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 class RoleSelectionPage extends StatelessWidget {
   const RoleSelectionPage({super.key});
 
-  void _selectRole(BuildContext context, String role) {
-    Navigator.pushNamed(
-      context,
-      '/signup',
-      arguments: {'role': role},
-    );
-  }
+void _selectRole(BuildContext context, String role) {
+  Navigator.pushNamed(context, 'login', arguments: role);
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +18,7 @@ class RoleSelectionPage extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            // decoration: const BoxDecoration(
-            //   image: DecorationImage(
-            //     image: AssetImage('images/bg_image.png'),
-            //     alignment: Alignment(0.0, -1.5),
-            //     fit: BoxFit.cover,
-            //   ),
-            // ),
+
             padding: const EdgeInsets.symmetric(horizontal: 24),
             height: MediaQuery.of(context).size.height,
             child: Column(
@@ -153,7 +144,7 @@ class RoleSelectionPage extends StatelessWidget {
         // I am a Service Provider card
         _buildRoleCard(
           context: context,
-          role: 'professional',
+          role: 'tasker',
           title: 'Offer Services',
           subtitle: 'Connect with clients and grow your business',
           icon: Icons.work_outline_rounded,

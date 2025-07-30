@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/presentation/widgets/custom_text_field.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:frontend/data/services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class SignupPage extends StatefulWidget {
@@ -19,7 +18,7 @@ class _SignupPageState extends State<SignupPage> {
   bool _isObscured = true;
 
   String _selectedRole = 'user'; // default value
-  Future<void> handleSignup() async {
+ Future<void> handleSignup() async {
   final name = _nameController.text.trim();
   final email = _emailController.text.trim();
   final password = _passwordController.text.trim();
@@ -33,15 +32,21 @@ class _SignupPageState extends State<SignupPage> {
   );
 
   if (result['success']) {
+    // ✅ Save role to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('role', _selectedRole);
+
+    // ✅ Navigate to OTP verification page with tempUserId
     Navigator.pushNamed(
       context,
       'otpVerification',
-      arguments: {'tempUserId': result['tempUserId']},
+      arguments: {'tempUserId': result['tempUserId'], 'role': _selectedRole},
     );
   } else {
     showError(result['message']);
   }
 }
+
 
 
   @override
@@ -173,7 +178,12 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   InkWell(
                     onTap: () {
-                      Navigator.pushNamed(context, 'login');
+                      Navigator.pushNamed(
+  context,
+  'login',
+  arguments: {'role': _selectedRole},
+);
+
                     },
                     child: Text(
                       'Login',

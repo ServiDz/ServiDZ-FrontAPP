@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/presentation/widgets/custom_text_field.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/presentation/widgets/custom_text_field.dart';
 import 'package:frontend/data/services/auth_service.dart';
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,35 +15,94 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   bool _isObscured = true;
 
-void handleLogin() async {
-  final email = emailController.text.trim();
-  final password = passwordController.text;
-
-  final authService = AuthService();
-  final result = await authService.login(email, password);
-
-  if (result['success']) {
-    Navigator.pushReplacementNamed(context, 'homepage');
-  } else {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Login Failed'),
-        content: Text(result['message']),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
+  String? role;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final args = ModalRoute.of(context)?.settings.arguments;
 
+      if (args is String) {
+        print('🔄 Received role from navigation: $args');
+        setState(() {
+          role = args;
+        });
+      } else if (args is Map && args['role'] != null) {
+        print('🔄 Received role from arguments map: ${args['role']}');
+        setState(() {
+          role = args['role'];
+        });
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        final savedRole = prefs.getString('role');
+        print('📦 Retrieved role from SharedPreferences: $savedRole');
+        if (savedRole != null) {
+          setState(() {
+            role = savedRole;
+          });
+        }
+      }
+    });
+  }
+
+  void handleLogin() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+
+    print('📤 Attempting login with email: $email, role: $role');
+
+    if (role == null || role!.isEmpty) {
+      print('❌ Role is null or empty at login time!');
+      showDialog(
+        context: context,
+        builder: (_) => const AlertDialog(
+          title: Text('Error'),
+          content: Text('Role is not set. Cannot proceed with login.'),
+        ),
+      );
+      return;
+    }
+
+    final authService = AuthService();
+    final result = await authService.login(email, password, role!);
+
+    print('📥 Login response: $result');
+
+    if (result['success']) {
+      final user = result['user'];
+      final userRole = user['role'];
+      print('✅ Login success. User role: $userRole');
+
+      if (userRole == 'user') {
+        // ignore: use_build_context_synchronously
+        Navigator.pushReplacementNamed(context, 'homepage');
+      } else if (userRole == 'tasker') {
+        // ignore: use_build_context_synchronously
+        Navigator.pushReplacementNamed(context, 'taskerhomepage');
+      } else {
+        // ignore: use_build_context_synchronously
+        Navigator.pushReplacementNamed(context, 'homepage');
+      }
+    } else {
+      print('❌ Login failed: ${result['message']}');
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Login Failed'),
+          content: Text(result['message']),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -54,7 +113,6 @@ void handleLogin() async {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 🔹 Logo & Title
                 Column(
                   children: [
                     Image.asset(
@@ -87,7 +145,6 @@ void handleLogin() async {
                 ),
                 const SizedBox(height: 40),
 
-                // 🔹 Email
                 ServiTextInput(
                   controller: emailController,
                   hintText: 'Enter your email',
@@ -95,7 +152,6 @@ void handleLogin() async {
                 ),
                 const SizedBox(height: 20),
 
-                // 🔹 Password
                 ServiTextInput(
                   controller: passwordController,
                   hintText: 'Enter your password',
@@ -113,10 +169,8 @@ void handleLogin() async {
                     },
                   ),
                 ),
-
                 const SizedBox(height: 8),
 
-                // 🔹 Forgot password
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -134,12 +188,11 @@ void handleLogin() async {
                 ),
                 const SizedBox(height: 20),
 
-                // 🔹 Login Button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: handleLogin,
+                    onPressed: role == null ? null : handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue[800],
                       elevation: 3,
@@ -159,7 +212,6 @@ void handleLogin() async {
                 ),
                 const SizedBox(height: 30),
 
-                // 🔹 Sign up prompt
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -171,7 +223,19 @@ void handleLogin() async {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.pushNamed(context, 'signup');
+                        if (role == 'tasker') {
+                          Navigator.pushNamed(
+                            context,
+                            'taskerRegister',
+                            arguments: {'role': role},
+                          );
+                        } else {
+                          Navigator.pushNamed(
+                            context,
+                            'signup',
+                            arguments: {'role': role},
+                          );
+                        }
                       },
                       child: Text(
                         "Sign up",

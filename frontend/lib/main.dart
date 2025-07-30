@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/pages/auth/Tasker_singup.dart';
 import 'package:frontend/presentation/pages/chat/chat_page.dart';
 import 'package:frontend/presentation/pages/chat/chatsList.dart';
+import 'package:frontend/presentation/pages/taskerHomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/presentation/pages/auth/login.dart';
 import 'package:frontend/presentation/pages/auth/otpVerification.dart';
@@ -11,7 +13,6 @@ import 'package:frontend/presentation/pages/homePage.dart';
 import 'package:frontend/presentation/pages/profile/edit_profile_page.dart';
 import 'package:frontend/presentation/pages/profile/profile_page.dart';
 import 'package:frontend/presentation/pages/tasker_details.dart';
-import 'package:frontend/data/services/auth_service.dart'; 
 import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
 
 void main() async {
@@ -24,20 +25,8 @@ void main() async {
 
   String initialRoute = '/';
 
-  // If tokens exist, try to refresh
-  if (accessToken != null && refreshToken != null && userId != null) {
-    final authService = AuthService();
-    bool refreshed = await authService.refreshAccessToken();
-
-    if (refreshed) {
-      initialRoute = 'homepage';
-    } else {
-      // If refresh fails, go to login
-      initialRoute = 'login';
-    }
-  } else {
-    initialRoute = 'login';
-  }
+  // Force start at login page for now
+  initialRoute = '/';
 
   runApp(MyApp(initialRoute: initialRoute));
 }
@@ -56,7 +45,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => GetStartedPage(),
         'roleSelection': (context) => const RoleSelectionPage(),
         'login': (context) => const LoginPage(),
-        '/signup': (context) => const SignupPage(),
+        'signup': (context) => const SignupPage(),
         'otpVerification': (context) => const OtpVerificationPage(),
         'homepage': (context) => HomePage(),
         'taskerDetails': (context) {
@@ -70,19 +59,18 @@ class MyApp extends StatelessWidget {
         },
         'chatsList': (context) => ChatsListPage(),
         'chatDetails': (context) {
-        final args = ModalRoute.of(context)!.settings.arguments as Map;
-        return ChatPage(
-        otherUserId: args['otherUserId'],
-        otherUserName: args['otherUserName'],
-        otherUserAvatar: args['otherUserAvatar'],
-        userId: args['userId'],
-        );
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return ChatPage(
+            otherUserId: args['otherUserId'],
+            otherUserName: args['otherUserName'],
+            otherUserAvatar: args['otherUserAvatar'],
+            userId: args['userId'],
+          );
         },
         'bookingConfirmed': (context) => const BookingConfirmedPage(),
+        'taskerRegister': (context) => const TaskerRegisterPage(),
+        'taskerHomePage': (context) => const TaskerHomePage(), // ✅ Fixed naming
       },
     );
   }
 }
-
-
-

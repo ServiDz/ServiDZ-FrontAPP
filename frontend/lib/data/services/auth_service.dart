@@ -5,32 +5,40 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   final String baseUrl = 'http://10.93.89.181:5000/api/auth';
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    final url = Uri.parse('$baseUrl/login');
+ Future<Map<String, dynamic>> login(String email, String password, String role) async {
+  final url = Uri.parse('$baseUrl/login');
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'email': email,
+      'password': password,
+      'role': role, // include the role here
+    }),
+  );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final accessToken = data['accessToken'];
-      final refreshToken = data['refreshToken'];
-      final user = data['user'];
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final accessToken = data['accessToken'];
+    final refreshToken = data['refreshToken'];
+    final user = data['user'];
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userId', user['_id']);
-      await prefs.setString('accessToken', accessToken);
-      await prefs.setString('refreshToken', refreshToken);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userId', user['_id']);
+    await prefs.setString('accessToken', accessToken);
+    await prefs.setString('refreshToken', refreshToken);
+    await prefs.setString('role', role); // optional: store role
 
-      return {'success': true, 'user': user};
-    } else {
-      final error = jsonDecode(response.body);
-      return {'success': false, 'message': error['message'] ?? 'Invalid credentials'};
-    }
+    return {'success': true, 'user': user};
+  } else {
+    final error = jsonDecode(response.body);
+    return {
+      'success': false,
+      'message': error['message'] ?? 'Invalid credentials'
+    };
   }
+}
 
 
   Future<Map<String, dynamic>> signup({
@@ -63,42 +71,48 @@ class AuthService {
 
 
 Future<Map<String, dynamic>> verifyOtp({
-    required String userId,
-    required String otp,
-  }) async {
-    final url = Uri.parse('http://10.93.89.181:5000/api/auth/verify-otp');
+  required String userId,
+  required String otp,
+  required String role,
+}) async {
+  final url = Uri.parse('http://10.93.89.181:5000/api/auth/verify-otp');
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': userId, 'otp': otp}),
-      );
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'userId': userId,
+        'otp': otp,
+        'role': role, // ✅ send role to backend
+      }),
+    );
 
-      print('🔁 Status Code: ${response.statusCode}');
-      print('📦 Response Body: ${response.body}');
+    print('🔁 Status Code: ${response.statusCode}');
+    print('📦 Response Body: ${response.body}');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        return {
-          'success': true,
-          'accessToken': data['accessToken'],
-          'user': data['user'],
-        };
-      } else {
-        final error = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': error['message'] ?? 'OTP verification failed',
-        };
-      }
-    } catch (e) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      return {
+        'success': true,
+        'accessToken': data['accessToken'],
+        'user': data['user'],
+      };
+    } else {
+      final error = jsonDecode(response.body);
       return {
         'success': false,
-        'message': 'An error occurred: $e',
+        'message': error['message'] ?? 'OTP verification failed',
       };
     }
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'An error occurred: $e',
+    };
   }
+}
+
 
 
   Future<bool> refreshAccessToken() async {
