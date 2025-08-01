@@ -72,7 +72,12 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
           ],
         ),
         const Spacer(),
-        Icon(Icons.notifications_none, color: Colors.blue, size: 30),
+          GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, 'notification');
+              },
+              child: const Icon(Icons.notifications_none, color: Colors.blue),
+            ),
       ],
     );
   }

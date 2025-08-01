@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/data/services/profile_service.dart';
 import 'package:frontend/presentation/pages/profile/edit_profile_page.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';

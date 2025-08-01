@@ -3,6 +3,9 @@ import 'package:frontend/data/services/booking_service.dart';
 import 'package:frontend/presentation/pages/booking/location_picker_page.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 
 class BookingPage extends StatefulWidget {
   final String userName;
@@ -36,6 +39,9 @@ class _BookingPageState extends State<BookingPage> {
     if (selectedLocation == null) return null;
     return '${selectedLocation!.latitude.toStringAsFixed(5)}, ${selectedLocation!.longitude.toStringAsFixed(5)}';
   }
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 
 Future<void> submitBooking() async {
@@ -155,12 +161,47 @@ Future<void> submitBooking() async {
     }
   }
 
+
+// Listen for Firebase messages and show local notifications
+void _setupFirebaseMessagingListener() {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = notification?.android;
+
+    if (notification != null && android != null) {
+      const AndroidInitializationSettings initializationSettingsAndroid =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+
+      const InitializationSettings initializationSettings =
+          InitializationSettings(android: initializationSettingsAndroid);
+
+      flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'booking_channel', // ✅ unique ID for the channel
+            'Booking Notifications', // ✅ channel name
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+        ),
+      );
+    }
+  });
+}
+
+
+  @override
   @override
   void initState() {
     super.initState();
-     print("🔁 BookingPage loaded with taskerId: ${widget.taskerId}");
+    print("🔁 BookingPage loaded with taskerId: ${widget.taskerId}");
+    _setupFirebaseMessagingListener();
   }
-
   Widget _buildInputTile({
     required IconData icon,
     required String text,
