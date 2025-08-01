@@ -18,7 +18,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
   final TextEditingController _searchController = TextEditingController();
 
   // Updated color scheme
-  final Color _primaryColor = const Color(0xFF2563EB);
+  final Color _primaryColor = Colors.blue;
   final Color _backgroundColor = const Color(0xFFF8FAFC);
   final Color _cardColor = Colors.white;
   final Color _unreadColor = const Color(0xFF2563EB);
@@ -270,7 +270,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
     ),
     child: Container(
       decoration: BoxDecoration(
-        color: Colors.blue[900], // Fixed color
+        color: Colors.blue, // Fixed color
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -328,14 +328,14 @@ class _ChatsListPageState extends State<ChatsListPage> {
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: Colors.blue[900],
+            color: Colors.blue,
           ),
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: [
           IconButton(
-            icon: Icon(Icons.edit, color: Colors.blue[900]),
+            icon: Icon(Icons.edit, color: Colors.blue),
             onPressed: () {
               // Add your edit functionality here
             },

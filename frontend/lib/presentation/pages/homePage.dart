@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../data/models/tasker_model.dart';
 import '../../data/services/tasker_service.dart';
 import '../../data/services/profile_service.dart'; // ✅ Add this
 import '../widgets/category_card.dart';
-import '../widgets/professional_card.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -151,7 +147,12 @@ class _HomePageState extends State<HomePage> {
               shape: BoxShape.circle,
               color: _primaryColor.withOpacity(0.1),
             ),
-            child: const Icon(Icons.notifications_none, color: _primaryColor),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, 'notification');
+              },
+              child: const Icon(Icons.notifications_none, color: Colors.blue),
+            ),
           ),
         ],
       ),
@@ -194,10 +195,10 @@ class _HomePageState extends State<HomePage> {
             height: 45,
             width: 45,
             decoration: BoxDecoration(
-              color: _primaryColor,
+              color: Colors.blue,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.menu, color: Colors.white),
+            child: const Icon(Icons.tune, color: Colors.white),
           ),
         ],
       ),
@@ -394,7 +395,7 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: _primaryColor,
+          color: Colors.blue,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),

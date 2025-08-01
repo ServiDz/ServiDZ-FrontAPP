@@ -21,7 +21,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final ImagePicker _picker = ImagePicker();
 
   int _currentIndex = 2; // Profile tab
-  final Color _primaryColor = const Color(0xFF00386F);
+  final Color _primaryColor = Colors.blue;
 
   @override
   void initState() {
@@ -195,7 +195,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ).then((_) => fetchUserProfile());
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00386F),
+                            backgroundColor: _primaryColor,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

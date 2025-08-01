@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthService {
   final String baseUrl = 'http://10.93.89.181:5000/api/auth';
 
- Future<Map<String, dynamic>> login(String email, String password, String role) async {
+Future<Map<String, dynamic>> login(String email, String password, String role) async {
   final url = Uri.parse('$baseUrl/login');
+
+  // ✅ Get FCM token
+  final fcmToken = await FirebaseMessaging.instance.getToken();
 
   final response = await http.post(
     url,
@@ -14,7 +18,8 @@ class AuthService {
     body: jsonEncode({
       'email': email,
       'password': password,
-      'role': role, // include the role here
+      'role': role,
+      'fcmToken': fcmToken, // ✅ Send to backend
     }),
   );
 

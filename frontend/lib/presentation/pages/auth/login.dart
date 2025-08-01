@@ -3,6 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/presentation/widgets/custom_text_field.dart';
 import 'package:frontend/data/services/auth_service.dart';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -17,9 +20,45 @@ class _LoginPageState extends State<LoginPage> {
 
   String? role;
 
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
+
+    // ✅ Listen for foreground notifications
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+
+      if (notification != null && android != null) {
+        const AndroidInitializationSettings initializationSettingsAndroid =
+            AndroidInitializationSettings('@mipmap/ic_launcher');
+
+        const InitializationSettings initializationSettings = InitializationSettings(
+          android: initializationSettingsAndroid,
+        );
+
+        flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+        flutterLocalNotificationsPlugin.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'welcome_channel', // channel ID
+              'Welcome Notifications', // channel name
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+          ),
+        );
+      }
+    });
+
+    // 🔄 Handle role from navigation or SharedPreferences
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final args = ModalRoute.of(context)?.settings.arguments;
 
