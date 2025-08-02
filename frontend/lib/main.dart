@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/pages/tasker/job_requests_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-// ignore: depend_on_referenced_packages
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:frontend/presentation/pages/auth/Tasker_singup.dart';
 import 'package:frontend/presentation/pages/chat/chat_page.dart';
 import 'package:frontend/presentation/pages/chat/chatsList.dart';
@@ -124,6 +123,7 @@ class MyApp extends StatelessWidget {
         'notification': (context) => const NotificationPage(),
         'taskerRegister': (context) => const TaskerRegisterPage(),
         'taskerHomePage': (context) => const TaskerHomePage(),
+        'jobRequests': (context) => const JobRequestsPage(),
       },
     );
   }

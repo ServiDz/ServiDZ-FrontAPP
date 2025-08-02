@@ -129,38 +129,51 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
   }
 
   Widget _buildQuickActionButton(IconData icon, String label) {
-    return Column(
-      children: [
-        Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 2,
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
+    return InkWell(
+      onTap: () {
+        if (label == 'Job Requests') {
+          Navigator.pushNamed(context, 'jobRequests');
+        } else if (label == 'Earnings') {
+          Navigator.pushNamed(context, 'earnings');
+        } else if (label == 'Schedule') {
+          Navigator.pushNamed(context, 'schedule');
+        } else if (label == 'History') {
+          Navigator.pushNamed(context, 'history');
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 2,
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              size: 30,
+              color: Colors.blue,
+            ),
           ),
-          child: Icon(
-            icon,
-            size: 30,
-            color: Colors.blue,
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
