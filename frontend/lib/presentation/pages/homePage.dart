@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/tasker_model.dart';
 import '../../data/services/tasker_service.dart';
-import '../../data/services/profile_service.dart'; // ✅ Add this
-import '../widgets/category_card.dart';
-
+import '../../data/services/profile_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,7 +11,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const _primaryColor = Color(0xFF00386F);
+  static const _primaryColor = Colors.blue;
   static const _secondaryColor = Color(0xFFFFF6EB);
   static const _cardBackground = Color(0xFFF8F8F8);
   static const _hintTextColor = Color(0xFFB3B3B3);
@@ -28,21 +26,23 @@ class _HomePageState extends State<HomePage> {
   String? errorMessage;
 
   int _currentIndex = 0;
+  Map<String, dynamic>? userProfile;
 
-  Map<String, dynamic>? userProfile; // ✅ Add this
-
-  final List<Map<String, String>> categories = [
+  final List<Map<String, dynamic>> categories = [
     {'image': 'images/icons/plumber.png', 'title': 'Plumber'},
     {'image': 'images/icons/electrecian.png', 'title': 'Electrician'},
     {'image': 'images/icons/painter.png', 'title': 'Painter'},
+    {'image': 'images/icons/gardener.png', 'title': 'Gardener'},
+    {'image': 'images/icons/cleaner.png', 'title': 'Cleaner'},
     {'image': 'images/icons/carpenter.png', 'title': 'Carpenter'},
+    {'image': 'images/icons/car_repair.png', 'title': 'Car Repair'},
   ];
 
   @override
   void initState() {
     super.initState();
     loadTaskers();
-    loadUserProfile(); // ✅ Load user profile
+    loadUserProfile();
   }
 
   Future<void> loadTaskers() async {
@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            _buildProfileRow(), // ✅ Will use userProfile if available
+            _buildProfileRow(),
             const SizedBox(height: 20),
             _buildSearchBarWithMenu(),
             const SizedBox(height: 25),
@@ -101,9 +101,91 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
+ Widget _buildCategoriesSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Categories',
+            style: _sectionTitleStyle.copyWith(color: Colors.blue[800]),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 110,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final category = categories[index];
+                return Padding(
+                  padding: EdgeInsets.only(
+                    right: index == categories.length - 1 ? 0 : 12,
+                  ),
+                  child: _buildCategoryCard(
+                    category['image'],
+                    category['title'],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(String imagePath, String label) {
+    return InkWell(
+      onTap: () {
+        // Add navigation for categories if needed
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 2,
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => Icon(
+                  Icons.error_outline,
+                  color: Colors.grey[400],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildProfileRow() {
-    final name = userProfile?['name'] ?? 'Ikram Messaoud';
+    final name = userProfile?['name'] ?? 'Guest';
     final imageUrl = userProfile?['avatar'] ?? '';
 
     return Padding(
@@ -129,9 +211,9 @@ class _HomePageState extends State<HomePage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Hi', style: TextStyle(fontSize: 14)),
+                  const Text('Hi!', style: TextStyle(fontSize: 14)),
                   Text(
-                    name,
+                    name.split(" ").first,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -151,7 +233,7 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 Navigator.pushNamed(context, 'notification');
               },
-              child: const Icon(Icons.notifications_none, color: Colors.blue),
+              child: const Icon(Icons.notifications_none, color: _primaryColor),
             ),
           ),
         ],
@@ -167,7 +249,7 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF00386F).withOpacity(0.1),
+                color: _primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(30),
               ),
               child: TextField(
@@ -205,42 +287,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCategoriesSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text('Categories',
-              style: _sectionTitleStyle.copyWith(color: _primaryColor)),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 110,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 13),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: CategoryCard(
-                  imagePath: category['image']!,
-                  title: category['title']!,
-                  backgroundColor: const Color(0xFF00386F).withOpacity(0.1),
-                  textColor: _primaryColor,
-                  borderColor: Colors.transparent,
-                  elevation: 0,
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildProfessionalsSection() {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -266,9 +312,20 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 'Top Professionals',
-                style: _sectionTitleStyle.copyWith(color: _primaryColor),
+                style: _sectionTitleStyle.copyWith(color: Colors.blue[800]),
               ),
-              const Text('view more', style: TextStyle(color: Colors.blue)),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, 'allProfessionals');
+                },
+                child: Text(
+                  'View all',
+                  style: TextStyle(
+                    color: _primaryColor,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -277,113 +334,120 @@ class _HomePageState extends State<HomePage> {
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: taskers.length,
+          itemCount: taskers.length > 3 ? 3 : taskers.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final pro = taskers[index];
-
-            return GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  'taskerDetails',
-                  arguments: {'id': pro.id},
-                );
-              },
-              child: Card(
-                color: _cardBackground,
-                elevation: 1,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          pro.profilePic,
-                          width: 100,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              const Icon(Icons.person, size: 90),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              pro.fullName,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.build, size: 16),
-                                const SizedBox(width: 6),
-                                Text(pro.profession),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on, size: 16),
-                                const SizedBox(width: 6),
-                                Text(pro.location),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(Icons.circle,
-                                    size: 10,
-                                    color: pro.isAvailable
-                                        ? Colors.green
-                                        : Colors.red),
-                                const SizedBox(width: 6),
-                                Text(
-                                  pro.isAvailable
-                                      ? 'Available'
-                                      : 'Unavailable',
-                                  style: TextStyle(
-                                    color: pro.isAvailable
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: List.generate(
-                                5,
-                                (i) => Icon(
-                                  Icons.star,
-                                  size: 18,
-                                  color: i < pro.rating.round()
-                                      ? Colors.orange
-                                      : Colors.grey.shade300,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
+            return _buildProfessionalCard(pro);
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildProfessionalCard(Tasker pro) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          'taskerDetails',
+          arguments: {'id': pro.id},
+        );
+      },
+      child: Card(
+        color: _cardBackground,
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  pro.profilePic,
+                  width: 100,
+                  height: 120,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 100,
+                    height: 120,
+                    color: _primaryColor.withOpacity(0.1),
+                    child: Icon(
+                      Icons.person,
+                      size: 40,
+                      color: _primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pro.fullName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.build, size: 16, color: _primaryColor),
+                        const SizedBox(width: 6),
+                        Text(pro.profession),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 16, color: _primaryColor),
+                        const SizedBox(width: 6),
+                        Text(pro.location),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.circle,
+                            size: 10,
+                            color: pro.isAvailable
+                                ? Colors.green
+                                : Colors.red),
+                        const SizedBox(width: 6),
+                        Text(
+                          pro.isAvailable ? 'Available' : 'Unavailable',
+                          style: TextStyle(
+                            color: pro.isAvailable ? Colors.green : Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (i) => Icon(
+                          Icons.star,
+                          size: 18,
+                          color: i < pro.rating.round()
+                              ? Colors.orange
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -434,8 +498,8 @@ class _HomePageState extends State<HomePage> {
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Orders'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
+            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Messages'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
       ),

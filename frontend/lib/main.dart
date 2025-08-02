@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/presentation/pages/tasker/job_requests_page.dart';
+import 'package:frontend/presentation/pages/tasker/taskerChatList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -19,6 +20,8 @@ import 'package:frontend/presentation/pages/profile/profile_page.dart';
 import 'package:frontend/presentation/pages/tasker_details.dart';
 import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
 import 'package:frontend/presentation/pages/notification/notification_page.dart';
+import 'package:frontend/presentation/pages/tasker/tasker_chat_page.dart';
+
 
 // Initialize local notifications
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -124,6 +127,18 @@ class MyApp extends StatelessWidget {
         'taskerRegister': (context) => const TaskerRegisterPage(),
         'taskerHomePage': (context) => const TaskerHomePage(),
         'jobRequests': (context) => const JobRequestsPage(),
+        'taskerChatsList': (context) => const TaskerChatsListPage(),
+        'taskerChatDetails': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return TaskerChatPage(
+          taskerId: args['taskerId'],
+          userId: args['otherUserId'],
+          userName: args['otherUserName'],
+          userAvatar: args['otherUserAvatar'],
+      );
+    },
+
+        
       },
     );
   }

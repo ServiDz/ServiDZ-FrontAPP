@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/data/services/tasker_service.dart';
 
 class TaskerHomePage extends StatefulWidget {
   const TaskerHomePage({super.key});
@@ -9,8 +10,9 @@ class TaskerHomePage extends StatefulWidget {
 
 class _TaskerHomePageState extends State<TaskerHomePage> {
   final TextEditingController _searchController = TextEditingController();
-
-  int _currentIndex = 0; // NEW
+  int _currentIndex = 0;
+  Map<String, dynamic>? _tasker;
+  bool _isLoading = true;
 
   @override
   void dispose() {
@@ -19,10 +21,63 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final taskerData = await TaskerService().fetchTaskerProfile();
+    setState(() {
+      _tasker = taskerData;
+      _isLoading = false;
+    });
+  }
+
+  Widget _buildProfileAvatar(String imageUrl, String name) {
+    final firstName = name.isNotEmpty ? name.split(" ").first : '?';
+    final firstLetter = firstName.substring(0, 1).toUpperCase();
+
+    if (imageUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 30,
+        backgroundImage: NetworkImage(imageUrl),
+      );
+    } else {
+      return Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            firstLetter,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      bottomNavigationBar: _buildBottomNavigationBar(), // UPDATED
+      bottomNavigationBar: _buildBottomNavigationBar(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -43,26 +98,26 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
   }
 
   Widget _buildWelcomeSection() {
+    final name = _tasker?['fullName'] ?? 'Guest';
+    final imageUrl = _tasker?['profilePic'] ?? '';
+    
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const CircleAvatar(
-          radius: 30,
-          backgroundImage: AssetImage('images/profile.jpg'),
-        ),
+        _buildProfileAvatar(imageUrl, name),
         const SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
-              'Hi Ahmed!',
-              style: TextStyle(
+              'Hi ${name.split(" ").first}!',
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 22,
               ),
             ),
-            SizedBox(height: 4),
-            Text(
+            const SizedBox(height: 4),
+            const Text(
               'Ready for your next job?',
               style: TextStyle(
                 fontSize: 15,
@@ -72,12 +127,12 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
           ],
         ),
         const Spacer(),
-          GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, 'notification');
-              },
-              child: const Icon(Icons.notifications_none, color: Colors.blue),
-            ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, 'notification');
+          },
+          child: const Icon(Icons.notifications_none, color: Colors.blue),
+        ),
       ],
     );
   }
@@ -89,7 +144,7 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
         hintText: 'Search for jobs...',
         prefixIcon: const Icon(Icons.search),
         suffixIcon: IconButton(
-          icon: Icon(Icons.tune, color: Colors.blue),
+          icon: const Icon(Icons.tune, color: Colors.blue),
           onPressed: () {},
         ),
         filled: true,
@@ -177,8 +232,6 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
     );
   }
 
-
-
   Widget _buildBottomNavigationBar() {
     return ClipRRect(
       borderRadius: const BorderRadius.only(
@@ -208,6 +261,14 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
           onTap: (index) {
             if (index == _currentIndex) return;
 
+            if (index == 0) {
+              Navigator.pushNamed(context, 'home');
+            } else if (index == 1) {
+              Navigator.pushNamed(context, 'taskerChatsList');
+            } else if (index == 2) {
+              Navigator.pushNamed(context, 'account');
+            }
+
             setState(() {
               _currentIndex = index;
             });
@@ -222,4 +283,3 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
     );
   }
 }
-
