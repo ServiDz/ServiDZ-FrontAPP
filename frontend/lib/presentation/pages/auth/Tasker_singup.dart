@@ -119,7 +119,7 @@ class _TaskerRegisterPageState extends State<TaskerRegisterPage> {
                 child: ElevatedButton(
                   onPressed: () => _handleSignup(role),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF003B73),
+                    backgroundColor:  Colors.blue[800],
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text("Signup", style: TextStyle(fontSize: 16, color: Colors.white)),

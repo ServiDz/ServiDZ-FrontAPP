@@ -154,15 +154,11 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 Column(
                   children: [
-                    Image.asset(
-                      'images/login.png',
-                      height: 200,
-                    ),
-                    const SizedBox(height: 15),
+                    // const SizedBox(height: 10),
                     RichText(
                       text: TextSpan(
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 34,
                           fontWeight: FontWeight.bold,
                           color: Colors.blue[800],
                         ),
@@ -172,13 +168,11 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    Text(
-                      "ServiDz",
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue[800],
-                      ),
+
+                    Image.asset(
+                      'images/logo.png',
+                      height: 60,
+                      alignment: Alignment.center,
                     ),
                   ],
                 ),

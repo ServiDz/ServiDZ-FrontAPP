@@ -15,7 +15,7 @@ class ServiTextInput extends StatelessWidget {
     required this.prefixIcon,
     this.obscureText = false,
     this.suffixIcon,
-    this.validator,
+    this.validator, Color? iconColor, Color? borderColor,
   });
 
   @override
@@ -41,7 +41,7 @@ class ServiTextInput extends StatelessWidget {
         validator: validator,
         decoration: InputDecoration(
           filled: true,
-          fillColor: Color(0xFFFFF6EB),
+          fillColor: Colors.blue[50],
           prefixIcon: Icon(prefixIcon, color: Colors.blue[800]),
           suffixIcon: suffixIcon,
           hintText: hintText,

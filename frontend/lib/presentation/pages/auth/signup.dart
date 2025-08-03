@@ -83,13 +83,19 @@ class _SignupPageState extends State<SignupPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Register To ServiDz',
-                style: TextStyle(
-                  fontSize: 34,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[800],
-                ),
+                Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Register To ",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.blue[800],
+                    ),
+                  ),
+                  Image.asset('images/logo.png', height: 50),
+                ],
               ),
               const SizedBox(height: 8),
               Text(

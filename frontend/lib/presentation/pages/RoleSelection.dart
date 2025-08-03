@@ -24,7 +24,7 @@ class RoleSelectionPage extends StatelessWidget {
               children: [
                 // App logo with subtle animation
                 _buildAnimatedLogo(),
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
 
                 // Welcome section
                 _buildWelcomeSection(),
@@ -58,19 +58,15 @@ class RoleSelectionPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       boxShadow: [
-                        // BoxShadow(
-                        //   color: Colors.blue[800]!.withOpacity(0.1),
-                        //   blurRadius: 20,
-                        //   spreadRadius: 5,
-                        // ),
                       ],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: Image.asset(
                         'images/logo.png',
-                        height: 120,
+                        height: 100,
                         fit: BoxFit.contain,
+                        alignment: Alignment.center,
                       ),
                     ),
                   ),
@@ -86,14 +82,14 @@ class RoleSelectionPage extends StatelessWidget {
   Widget _buildWelcomeSection() {
     return Column(
       children: [
-        Text(
-          'Welcome to ServiDz',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue[800],
-          ),
-        ),
+        // Text(
+        //   'Welcome to ServiDz',
+        //   style: TextStyle(
+        //     fontSize: 24,
+        //     fontWeight: FontWeight.bold,
+        //     color: Colors.blue[800],
+        //   ),
+        // ),
         const SizedBox(height: 16),
         RichText(
           textAlign: TextAlign.center,
