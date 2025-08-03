@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/pages/tasker/certification_page.dart';
 import 'package:frontend/presentation/pages/tasker/job_requests_page.dart';
 import 'package:frontend/presentation/pages/tasker/taskerChatList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -137,6 +138,13 @@ class MyApp extends StatelessWidget {
           userAvatar: args['otherUserAvatar'],
       );
     },
+        'certificationPage': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return CertificationPage(
+            certifications: args['certifications'],
+            taskerName: args['taskerName'],
+          );
+        },
 
         
       },
