@@ -4,10 +4,9 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 class RoleSelectionPage extends StatelessWidget {
   const RoleSelectionPage({super.key});
 
-void _selectRole(BuildContext context, String role) {
-  Navigator.pushNamed(context, 'login', arguments: role);
-}
-
+  void _selectRole(BuildContext context, String role) {
+    Navigator.pushNamed(context, 'login', arguments: role);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +17,6 @@ void _selectRole(BuildContext context, String role) {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-
             padding: const EdgeInsets.symmetric(horizontal: 24),
             height: MediaQuery.of(context).size.height,
             child: Column(
@@ -34,10 +32,6 @@ void _selectRole(BuildContext context, String role) {
 
                 // Role selection cards
                 _buildRoleCards(context),
-                const SizedBox(height: 40),
-
-                // Footer
-            
               ],
             ),
           ),
@@ -65,7 +59,7 @@ void _selectRole(BuildContext context, String role) {
                       shape: BoxShape.circle,
                       boxShadow: [
                         // BoxShadow(
-                        //   color: Colors.blue[900]!.withOpacity(0.1),
+                        //   color: Colors.blue[800]!.withOpacity(0.1),
                         //   blurRadius: 20,
                         //   spreadRadius: 5,
                         // ),
@@ -92,14 +86,14 @@ void _selectRole(BuildContext context, String role) {
   Widget _buildWelcomeSection() {
     return Column(
       children: [
-        // Text(
-        //   'Welcome',
-        //   style: TextStyle(
-        //     fontSize: 28,
-        //     fontWeight: FontWeight.bold,
-        //     color: Colors.blue[900],
-        //   ),
-        // ),
+        Text(
+          'Welcome to ServiDz',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue[800],
+          ),
+        ),
         const SizedBox(height: 16),
         RichText(
           textAlign: TextAlign.center,
@@ -134,10 +128,9 @@ void _selectRole(BuildContext context, String role) {
           title: 'Find a Service',
           subtitle: 'Get your tasks done by professionals',
           icon: Icons.search_rounded,
-          bgColor: Color(0xFFFFF6EB)
-,
-          textColor: Colors.blue[900]!,
-          borderColor: Colors.blue[900]!.withOpacity(0.3),
+          bgColor: Colors.blue[50]!, // Light blue background
+          textColor: Colors.blue[800]!,
+          borderColor: Colors.blue[200]!,
         ),
         const SizedBox(height: 20),
         
@@ -148,9 +141,9 @@ void _selectRole(BuildContext context, String role) {
           title: 'Offer Services',
           subtitle: 'Connect with clients and grow your business',
           icon: Icons.work_outline_rounded,
-          bgColor: Colors.blue[900]!,
+          bgColor: Colors.blue[800]!, // Dark blue background
           textColor: Colors.white,
-          borderColor: Colors.blue[900]!,
+          borderColor: Colors.blue[800]!,
         ),
       ],
     );
@@ -182,9 +175,10 @@ void _selectRole(BuildContext context, String role) {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.blue.withOpacity(0.1),
                 blurRadius: 10,
                 spreadRadius: 2,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -230,34 +224,6 @@ void _selectRole(BuildContext context, String role) {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureChip(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.blue[900]!.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.blue[900]!.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Colors.blue[900]),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.blue[900],
-            ),
-          ),
-        ],
       ),
     );
   }
