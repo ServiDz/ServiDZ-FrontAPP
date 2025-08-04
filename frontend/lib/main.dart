@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/pages/profile/tasker_profile.dart';
+import 'package:frontend/presentation/pages/tasker/MainTaskerPage.dart';
 import 'package:frontend/presentation/pages/tasker/certification_page.dart';
 import 'package:frontend/presentation/pages/tasker/job_requests_page.dart';
+import 'package:frontend/presentation/pages/tasker/ratingsPage.dart';
+import 'package:frontend/presentation/pages/tasker/taskerBookingsPage.dart';
 import 'package:frontend/presentation/pages/tasker/taskerChatList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,7 +13,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:frontend/presentation/pages/auth/Tasker_singup.dart';
 import 'package:frontend/presentation/pages/chat/chat_page.dart';
 import 'package:frontend/presentation/pages/chat/chatsList.dart';
-import 'package:frontend/presentation/pages/taskerHomePage.dart';
+import 'package:frontend/presentation/pages/tasker/taskerHomePage.dart';
 import 'package:frontend/presentation/pages/auth/login.dart';
 import 'package:frontend/presentation/pages/auth/otpVerification.dart';
 import 'package:frontend/presentation/pages/auth/signup.dart';
@@ -145,8 +149,17 @@ class MyApp extends StatelessWidget {
             taskerName: args['taskerName'],
           );
         },
+        'taskerProfile': (context) =>  TaskerProfilePage(),
+        'taskerBookingsPage': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return TaskerBookingsPage(
+            taskerId: args['taskerId'],
+            taskerName: args['taskerName'],
+          );
+        },
+        'taskerRatingsPage': (context) => const RatingsPage(),
+        'mainTaskerPage': (context) => const MainTaskerPage(),
 
-        
       },
     );
   }

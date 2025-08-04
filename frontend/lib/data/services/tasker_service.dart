@@ -61,5 +61,15 @@ class TaskerService {
   }
 }
 
+Future<Map<String, dynamic>> fetchTaskerRatings(String taskerId) async {
+    final response = await http.get(Uri.parse('http://10.93.89.181:5000/api/tasker/$taskerId/ratings'));
+
+    if (response.statusCode == 200) {
+      print('Ratings fetched successfully');
+      return json.decode(response.body); 
+    } else {
+      throw Exception('Failed to load ratings');
+    }
+  }
 
 }

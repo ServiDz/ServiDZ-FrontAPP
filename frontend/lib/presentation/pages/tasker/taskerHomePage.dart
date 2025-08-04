@@ -480,56 +480,6 @@ Widget _buildSearchBar() {
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(20),
-        topRight: Radius.circular(20),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.blue,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white.withOpacity(0.7),
-          currentIndex: _currentIndex,
-          type: BottomNavigationBarType.fixed,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          onTap: (index) {
-            if (index == _currentIndex) return;
-
-            if (index == 0) {
-              Navigator.pushNamed(context, 'home');
-            } else if (index == 1) {
-              Navigator.pushNamed(context, 'taskerChatsList');
-            } else if (index == 2) {
-              Navigator.pushNamed(context, 'account');
-            }
-
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Orders'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -543,7 +493,6 @@ Widget _buildSearchBar() {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      bottomNavigationBar: _buildBottomNavigationBar(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

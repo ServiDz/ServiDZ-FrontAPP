@@ -118,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushReplacementNamed(context, 'homepage');
       } else if (userRole == 'tasker') {
         // ignore: use_build_context_synchronously
-        Navigator.pushReplacementNamed(context, 'taskerHomePage');
+        Navigator.pushReplacementNamed(context, 'mainTaskerPage');
       } else {
         // ignore: use_build_context_synchronously
         Navigator.pushReplacementNamed(context, 'homepage');

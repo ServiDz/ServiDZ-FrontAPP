@@ -81,4 +81,22 @@ Future<Booking?> fetchNextJob() async {
   }
 }
 
+
+Future<List<Map<String, dynamic>>> fetchTaskerBookings(String taskerId) async {
+    final response = await http.get(Uri.parse('http://10.93.89.181:5000/api/bookings/$taskerId/summary'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List<dynamic> upcoming = data['upcoming'] ?? [];
+      final List<dynamic> completed = data['completed'] ?? [];
+
+      return [
+        ...upcoming.map((b) => {...b, 'status': 'Upcoming'}),
+        ...completed.map((b) => {...b, 'status': 'Completed'}),
+      ];
+    } else {
+      throw Exception('Failed to fetch tasker bookings');
+    }
+  }
+
 }
