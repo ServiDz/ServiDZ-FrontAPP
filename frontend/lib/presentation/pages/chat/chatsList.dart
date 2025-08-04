@@ -262,60 +262,6 @@ class _ChatsListPageState extends State<ChatsListPage> {
     );
   }
 
- Widget _buildBottomNavigationBar() {
-  return ClipRRect(
-    borderRadius: const BorderRadius.only(
-      topLeft: Radius.circular(20),
-      topRight: Radius.circular(20),
-    ),
-    child: Container(
-      decoration: BoxDecoration(
-        color: Colors.blue, // Fixed color
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white.withOpacity(0.7),
-        currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          if (index == _currentIndex) return;
-
-          setState(() {
-            _currentIndex = index;
-          });
-
-          switch (index) {
-            case 0:
-              Navigator.pushReplacementNamed(context, 'homepage');
-              break;
-            case 1:
-              Navigator.pushReplacementNamed(context, 'chatsList');
-              break;
-            case 2:
-              Navigator.pushReplacementNamed(context, 'profile');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Orders'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
-        ],
-      ),
-    ),
-  );
-}
 
 
   @override
@@ -371,7 +317,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+
     );
   }
 }

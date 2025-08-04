@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:frontend/data/services/booking_service.dart';
 import 'package:frontend/data/services/tasker_service.dart';
 import 'package:frontend/data/models/booking.dart';
+import 'package:flutter/services.dart'; // For Clipboard
 
 class TaskerHomePage extends StatefulWidget {
   const TaskerHomePage({super.key});
-
 
   @override
   State<TaskerHomePage> createState() => _TaskerHomePageState();
@@ -13,11 +16,11 @@ class TaskerHomePage extends StatefulWidget {
 
 class _TaskerHomePageState extends State<TaskerHomePage> {
   final TextEditingController _searchController = TextEditingController();
-  int _currentIndex = 0;
   Map<String, dynamic>? _tasker;
   bool _isLoading = true;
   Booking? _nextJob;
   bool _isLoadingNextJob = true;
+  Position? _currentPosition;
 
   @override
   void dispose() {
@@ -29,6 +32,25 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
   void initState() {
     super.initState();
     _loadData();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    final status = await Permission.location.request();
+    if (status.isGranted) {
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        setState(() {
+          _currentPosition = position;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not get current location')),
+        );
+      }
+    }
   }
 
   Future<void> _loadData() async {
@@ -47,7 +69,101 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
         _isLoading = false;
         _isLoadingNextJob = false;
       });
-      // Handle error as needed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading data: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch phone app')),
+      );
+    }
+  }
+
+  Future<void> _openMapWithDirections(String destinationAddress) async {
+    try {
+      // 1. Ensure we have current location
+      if (_currentPosition == null) {
+        await _getCurrentLocation();
+        if (_currentPosition == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not get current location')),
+          );
+          return;
+        }
+      }
+
+      final origin = '${_currentPosition!.latitude},${_currentPosition!.longitude}';
+      final destination = Uri.encodeComponent(destinationAddress);
+
+      // 2. Try native Google Maps app with directions
+      final googleMapsUrl = Uri.parse(
+        'comgooglemaps://?saddr=$origin&daddr=$destination&directionsmode=driving'
+      );
+
+      if (await canLaunchUrl(googleMapsUrl)) {
+        debugPrint('Launching Google Maps with directions');
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // 3. Try Apple Maps (for iOS)
+      final appleMapsUrl = Uri.parse(
+        'https://maps.apple.com/?saddr=$origin&daddr=$destination'
+      );
+
+      if (await canLaunchUrl(appleMapsUrl)) {
+        debugPrint('Launching Apple Maps with directions');
+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // 4. Try Google Maps web version with directions
+      final googleMapsWebUrl = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1'
+        '&origin=$origin'
+        '&destination=$destination'
+        '&travelmode=driving'
+      );
+
+      if (await canLaunchUrl(googleMapsWebUrl)) {
+        debugPrint('Launching Google Maps web with directions');
+        await launchUrl(googleMapsWebUrl, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // 5. Try geo URI (fallback for most Android devices)
+      final geoUrl = Uri.parse('geo:$origin?q=$destination(${Uri.decodeComponent(destination)})');
+      if (await canLaunchUrl(geoUrl)) {
+        debugPrint('Launching geo URI with directions');
+        await launchUrl(geoUrl, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // 6. Ultimate fallback - copy to clipboard
+      await Clipboard.setData(ClipboardData(
+        text: 'Directions from your location to: $destinationAddress\n'
+              'Google Maps Link: https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination&travelmode=driving'
+      ));
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Directions copied to clipboard. Paste in any map app')),
+      );
+
+    } catch (e) {
+      debugPrint('Error opening maps: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
   }
 
@@ -250,10 +366,7 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
                     icon: Icon(Icons.phone_outlined, size: 18, color: Colors.blue.shade700),
                     label: Text('Call', style: TextStyle(color: Colors.blue.shade700)),
                     onPressed: _nextJob?.user?.phone != null
-                        ? () {
-                            // Implement call functionality
-                            // launchUrl(Uri.parse('tel:${_nextJob!.user!.phone}'));
-                          }
+                        ? () => _makePhoneCall(_nextJob!.user!.phone!)
                         : null,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -292,11 +405,7 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
                 icon: const Icon(Icons.directions, size: 18),
                 label: const Text('GET DIRECTIONS'),
                 onPressed: _nextJob?.address != null
-                    ? () {
-                        // Implement directions functionality
-                        // final query = Uri.encodeComponent(_nextJob!.address!);
-                        // launchUrl(Uri.parse('https://www.google.com/maps/search/?api=1&query=$query'));
-                      }
+                    ? () => _openMapWithDirections(_nextJob!.address!)
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
@@ -354,57 +463,55 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
     );
   }
 
-Widget _buildSearchBar() {
-  const _primaryColor = Colors.blue;
-  const _hintTextColor = Color(0xFFB3B3B3);
+  Widget _buildSearchBar() {
+    const _primaryColor = Colors.blue;
+    const _hintTextColor = Color(0xFFB3B3B3);
 
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      Expanded(
-        child: Container(
-          height: 45, // Match the filter button
-          decoration: BoxDecoration(
-            color: _primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: TextField(
-            controller: _searchController,
-            style: const TextStyle(fontSize: 14),
-            decoration: const InputDecoration(
-              hintText: 'Search for service...',
-              hintStyle: TextStyle(color: _hintTextColor, fontSize: 14),
-              filled: true,
-              fillColor: Colors.transparent,
-              contentPadding:
-                  EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-              border: InputBorder.none,
-              prefixIcon: Icon(Icons.search, color: _hintTextColor),
-              suffixIcon: Icon(Icons.mic, color: _primaryColor),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Container(
+            height: 45,
+            decoration: BoxDecoration(
+              color: _primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(fontSize: 14),
+              decoration: const InputDecoration(
+                hintText: 'Search for service...',
+                hintStyle: TextStyle(color: _hintTextColor, fontSize: 14),
+                filled: true,
+                fillColor: Colors.transparent,
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                border: InputBorder.none,
+                prefixIcon: Icon(Icons.search, color: _hintTextColor),
+                suffixIcon: Icon(Icons.mic, color: _primaryColor),
+              ),
             ),
           ),
         ),
-      ),
-      const SizedBox(width: 10),
-      GestureDetector(
-        onTap: () {
-          // Filter logic here
-        },
-        child: Container(
-          height: 45,
-          width: 45,
-          decoration: BoxDecoration(
-            color: _primaryColor,
-            borderRadius: BorderRadius.circular(12),
+        const SizedBox(width: 10),
+        GestureDetector(
+          onTap: () {
+            // Filter logic here
+          },
+          child: Container(
+            height: 45,
+            width: 45,
+            decoration: BoxDecoration(
+              color: _primaryColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.tune, color: Colors.white),
           ),
-          child: const Icon(Icons.tune, color: Colors.white),
         ),
-      ),
-    ],
-  );
-}
-
-
+      ],
+    );
+  }
 
   Widget _buildQuickActions() {
     return Column(
@@ -479,7 +586,6 @@ Widget _buildSearchBar() {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {

@@ -1,34 +1,30 @@
-// main_tasker_page.dart
+// main_user_page.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/presentation/pages/tasker/taskerChatList.dart';
-import 'package:frontend/presentation/pages/tasker/taskerHomePage.dart';
-import 'package:frontend/presentation/pages/tasker/taskerBookingsPage.dart';
-import 'package:frontend/presentation/pages/tasker/ratingsPage.dart';
-import 'package:frontend/presentation/pages/tasker/settingsPage.dart';
+import 'package:frontend/presentation/pages/chat/chatsList.dart';
+import 'package:frontend/presentation/pages/homepage.dart';
+import 'package:frontend/presentation/pages/profile/profile_page.dart';
 
-class MainTaskerPage extends StatefulWidget {
-  const MainTaskerPage({super.key});
+class MainUserPage extends StatefulWidget {
+  const MainUserPage({super.key});
 
   @override
-  State<MainTaskerPage> createState() => _MainTaskerPageState();
+  State<MainUserPage> createState() => _MainUserPageState();
 }
 
-class _MainTaskerPageState extends State<MainTaskerPage> {
-  int _selectedTab = 0;
+class _MainUserPageState extends State<MainUserPage> {
+  int _currentIndex = 0;
   late PageController _pageController;
 
   final List<Widget> _pages = [
-    const TaskerHomePage(),
-    const TaskerBookingsPage(taskerId: null, taskerName: null),
-    const TaskerChatsListPage(),
-    const RatingsPage(),
-    const SettingsPage(),
+    const HomePage(),
+    const ChatsListPage(),
+    const ProfilePage(),
   ];
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _selectedTab);
+    _pageController = PageController(initialPage: _currentIndex);
   }
 
   @override
@@ -45,7 +41,7 @@ class _MainTaskerPageState extends State<MainTaskerPage> {
         physics: const BouncingScrollPhysics(),
         onPageChanged: (index) {
           setState(() {
-            _selectedTab = index;
+            _currentIndex = index;
           });
         },
         children: _pages,
@@ -75,12 +71,12 @@ class _MainTaskerPageState extends State<MainTaskerPage> {
           topRight: Radius.circular(25),
         ),
         child: BottomNavigationBar(
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.blue, // Blue background
           elevation: 0,
-          currentIndex: _selectedTab,
+          currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white.withOpacity(0.7),
+          selectedItemColor: Colors.white, // White selected items
+          unselectedItemColor: Colors.white.withOpacity(0.7), // Slightly transparent white for unselected
           selectedLabelStyle: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -94,7 +90,7 @@ class _MainTaskerPageState extends State<MainTaskerPage> {
           showSelectedLabels: true,
           showUnselectedLabels: true,
           onTap: (index) {
-            if (index == _selectedTab) return;
+            if (index == _currentIndex) return;
             
             _pageController.animateToPage(
               index,
@@ -108,15 +104,15 @@ class _MainTaskerPageState extends State<MainTaskerPage> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: _selectedTab == 0 
+                  color: _currentIndex == 0 
                       ? Colors.white.withOpacity(0.2)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  _selectedTab == 0 ? Icons.home_filled : Icons.home_outlined,
+                  _currentIndex == 0 ? Icons.home_filled : Icons.home_outlined,
                   size: 24,
-                  color: Colors.white,
+                  color: Colors.white, // White icon
                 ),
               ),
               label: 'Home',
@@ -126,72 +122,36 @@ class _MainTaskerPageState extends State<MainTaskerPage> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: _selectedTab == 1
+                  color: _currentIndex == 1
                       ? Colors.white.withOpacity(0.2)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  _selectedTab == 1 ? Icons.assignment : Icons.assignment_outlined,
+                  _currentIndex == 1 ? Icons.chat_bubble : Icons.chat_bubble_outline,
                   size: 24,
-                  color: Colors.white,
+                  color: Colors.white, // White icon
                 ),
               ),
-              label: 'Bookings',
+              label: 'Chats',
             ),
             BottomNavigationBarItem(
               icon: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: _selectedTab == 2
+                  color: _currentIndex == 2
                       ? Colors.white.withOpacity(0.2)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  _selectedTab == 2 ? Icons.chat_bubble : Icons.chat_bubble_outline,
+                  _currentIndex == 2 ? Icons.person : Icons.person_outline,
                   size: 24,
-                  color: Colors.white,
+                  color: Colors.white, // White icon
                 ),
               ),
-              label: 'Messages',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: _selectedTab == 3
-                      ? Colors.white.withOpacity(0.2)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _selectedTab == 3 ? Icons.star : Icons.star_outline,
-                  size: 24,
-                  color: Colors.white,
-                ),
-              ),
-              label: 'Ratings',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: _selectedTab == 4
-                      ? Colors.white.withOpacity(0.2)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _selectedTab == 4 ? Icons.settings : Icons.settings_outlined,
-                  size: 24,
-                  color: Colors.white,
-                ),
-              ),
-              label: 'Settings',
+              label: 'Profile',
             ),
           ],
         ),

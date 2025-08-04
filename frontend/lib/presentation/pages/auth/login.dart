@@ -115,13 +115,13 @@ class _LoginPageState extends State<LoginPage> {
 
       if (userRole == 'user') {
         // ignore: use_build_context_synchronously
-        Navigator.pushReplacementNamed(context, 'homepage');
+        Navigator.pushReplacementNamed(context, 'mainUserPage');
       } else if (userRole == 'tasker') {
         // ignore: use_build_context_synchronously
         Navigator.pushReplacementNamed(context, 'mainTaskerPage');
       } else {
         // ignore: use_build_context_synchronously
-        Navigator.pushReplacementNamed(context, 'homepage');
+        Navigator.pushReplacementNamed(context, 'mainUserPage');
       }
     } else {
       print('❌ Login failed: ${result['message']}');

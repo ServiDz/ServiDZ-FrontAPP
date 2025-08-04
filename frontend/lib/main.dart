@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/pages/MainUserPage.dart';
 import 'package:frontend/presentation/pages/profile/tasker_profile.dart';
 import 'package:frontend/presentation/pages/tasker/MainTaskerPage.dart';
 import 'package:frontend/presentation/pages/tasker/certification_page.dart';
@@ -22,7 +23,7 @@ import 'package:frontend/presentation/pages/getStarted.dart';
 import 'package:frontend/presentation/pages/homePage.dart';
 import 'package:frontend/presentation/pages/profile/edit_profile_page.dart';
 import 'package:frontend/presentation/pages/profile/profile_page.dart';
-import 'package:frontend/presentation/pages/tasker_details.dart';
+import 'package:frontend/presentation/pages/tasker/tasker_details.dart';
 import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
 import 'package:frontend/presentation/pages/notification/notification_page.dart';
 import 'package:frontend/presentation/pages/tasker/tasker_chat_page.dart';
@@ -159,6 +160,7 @@ class MyApp extends StatelessWidget {
         },
         'taskerRatingsPage': (context) => const RatingsPage(),
         'mainTaskerPage': (context) => const MainTaskerPage(),
+        'mainUserPage': (context) => const MainUserPage(),
 
       },
     );
