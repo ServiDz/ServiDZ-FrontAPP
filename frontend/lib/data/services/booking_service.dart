@@ -14,7 +14,7 @@ class BookingService {
     required String address,
     required String description,
   }) async {
-    const apiUrl = 'http://10.93.89.181:5000/api/bookings/create';
+    const apiUrl = 'http://192.168.1.16:5000/api/bookings/create';
 
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -48,7 +48,7 @@ Future<Booking?> fetchNextJob() async {
       throw Exception('Tasker ID not found in SharedPreferences');
     }
 
-    final url = 'http://10.93.89.181:5000/api/bookings/next-job';
+    final url = 'http://192.168.1.16:5000/api/bookings/next-job';
     print('🌐 Sending POST request to $url with taskerId in body...');
 
     final response = await http.post(

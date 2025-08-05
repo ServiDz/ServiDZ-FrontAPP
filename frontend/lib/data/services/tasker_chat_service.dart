@@ -10,6 +10,7 @@ class TaskerChatService {
   late IO.Socket _socket;
   late String taskerId;
   final String userId;
+  
 
   bool _isSocketConnected = false;
 

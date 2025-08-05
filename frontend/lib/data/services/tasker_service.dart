@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/tasker_model.dart';
 
 class TaskerService {
-  final String _baseUrl = 'http://10.93.89.181:5000/api/taskers/all';
+  final String _baseUrl = 'http://192.168.1.16:5000/api/taskers/all';
 
   Future<List<Tasker>> getAllTaskers() async {
     final url = Uri.parse(_baseUrl);
@@ -19,29 +19,26 @@ class TaskerService {
   }
 
 
- Future<Map<String, dynamic>?> fetchTaskerProfile() async {
+Future<Map<String, dynamic>?> fetchTaskerProfile() async {
   print('📦 Getting SharedPreferences...');
   final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
 
-  final taskerId = prefs.getString('taskerId');
-  print('🆔 Retrieved taskerId: $taskerId');
-
-  if (taskerId == null) {
-    print('❗ No taskerId found in SharedPreferences');
+  if (token == null) {
+    print('❗ No token found in SharedPreferences');
     return null;
   }
 
-  final url = Uri.parse('http://10.93.89.181:5000/api/tasker/profile');
-  final body = jsonEncode({'taskerId': taskerId});
-
-  print('🌐 Sending POST request to $url');
-  print('📤 Request body: $body');
+  final url = Uri.parse('http://192.168.1.16:5000/api/tasker/profile');
+  print('🌐 Sending GET request to $url');
 
   try {
-    final response = await http.post(
+    final response = await http.get(
       url,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     print('📥 Response status: ${response.statusCode}');
@@ -61,8 +58,9 @@ class TaskerService {
   }
 }
 
+
 Future<Map<String, dynamic>> fetchTaskerRatings(String taskerId) async {
-    final response = await http.get(Uri.parse('http://10.93.89.181:5000/api/tasker/$taskerId/ratings'));
+    final response = await http.get(Uri.parse('http://192.168.1.16:5000/api/tasker/$taskerId/ratings'));
 
     if (response.statusCode == 200) {
       print('Ratings fetched successfully');

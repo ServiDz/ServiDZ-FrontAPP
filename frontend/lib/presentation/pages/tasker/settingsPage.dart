@@ -223,6 +223,8 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  
+
   Widget _buildProfileAvatar(String imageUrl, String name) {
     final firstName = name.isNotEmpty ? name.split(" ").first : '?';
     final firstLetter = firstName.substring(0, 1).toUpperCase();

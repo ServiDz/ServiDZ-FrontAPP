@@ -4,16 +4,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthService {
-  final String baseUrl = 'http://10.93.89.181:5000/api/auth';
+  final String baseUrl = 'http://192.168.1.16:5000/api/auth';
 
   // ✅ Reusable storage method
-  Future<void> _storeAuthData(String accessToken, String refreshToken, Map<String, dynamic> user, String role) async {
-    final prefs = await SharedPreferences.getInstance();
+ Future<void> _storeAuthData(String accessToken, String refreshToken, Map<String, dynamic> user, String role) async {
+  final prefs = await SharedPreferences.getInstance();
+
+  if (role == 'user') {
     await prefs.setString('userId', user['_id']);
-    await prefs.setString('accessToken', accessToken);
-    await prefs.setString('refreshToken', refreshToken);
-    await prefs.setString('role', role); // optional: store role
+  } else if (role == 'tasker') {
+    await prefs.setString('taskerId', user['_id']);
   }
+
+  await prefs.setString('accessToken', accessToken);
+  await prefs.setString('refreshToken', refreshToken);
+  await prefs.setString('role', role);
+}
+
 
   // ✅ Logout / cleanup method
   Future<void> clearAuthData() async {

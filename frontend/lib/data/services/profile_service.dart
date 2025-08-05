@@ -5,62 +5,97 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileService {
-  static const String _baseUrl = 'http://10.93.89.181:5000';
+  static const String _baseUrl = 'http://192.168.1.16:5000';
 
-  static Future<Map<String, dynamic>?> fetchUserProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
-    if (userId == null) return null;
+ static Future<Map<String, dynamic>?> fetchUserProfile() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
 
-    final url = Uri.parse('$_baseUrl/api/profile');
+  if (token == null) {
+    print('❗ Token not found');
+    return null;
+  }
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': userId}),
-      );
+  final url = Uri.parse('$_baseUrl/api/profile');
+  print('🌐 Sending GET to $url with token');
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['user'];
-      } else {
-        print('❌ Failed to load profile: ${response.statusCode}');
-        return null;
-      }
-    } catch (e) {
-      print('❌ Exception in fetchUserProfile: $e');
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('📥 Response status: ${response.statusCode}');
+    print('📥 Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['user'];
+    } else {
+      print('❌ Failed to load user profile: ${response.body}');
       return null;
     }
+  } catch (e) {
+    print('❌ Exception in fetchUserProfile: $e');
+    return null;
+  }
+}
+
+
+static Future<bool> uploadAvatar(File imageFile) async {
+  print('📦 Starting avatar upload...');
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  if (token == null) {
+    print('❗ Token not found in SharedPreferences');
+    return false;
   }
 
-  static Future<bool> uploadAvatar(File imageFile) async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
-    if (userId == null) return false;
+  print('🔐 Retrieved token: $token');
+  print('📁 Image path: ${imageFile.path}');
 
-    final uri = Uri.parse("$_baseUrl/api/profile/upload-avatar");
+  final uri = Uri.parse("$_baseUrl/api/profile/upload-avatar");
+  print('🌐 Upload URL: $uri');
 
-    final request = http.MultipartRequest("POST", uri)
-      ..fields['userId'] = userId
-      ..files.add(await http.MultipartFile.fromPath('avatar', imageFile.path));
+  final request = http.MultipartRequest("POST", uri);
 
-    try {
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
+  request.headers['Authorization'] = 'Bearer $token';
 
-      if (response.statusCode == 200) {
-        print('✅ Avatar upload success: $responseBody');
-        return true;
-      } else {
-        print('❌ Avatar upload failed: $responseBody');
-        return false;
-      }
-    } catch (e) {
-      print('❌ Exception in uploadAvatar: $e');
+  try {
+    final multipartFile = await http.MultipartFile.fromPath('avatar', imageFile.path);
+    print('📤 Prepared multipart file: ${multipartFile.filename} (${multipartFile.length} bytes)');
+    request.files.add(multipartFile);
+  } catch (e) {
+    print('❌ Failed to prepare file: $e');
+    return false;
+  }
+
+  try {
+    print('🚀 Sending multipart request...');
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+
+    print('📥 Status: ${response.statusCode}');
+    print('📦 Response: $responseBody');
+
+    if (response.statusCode == 200) {
+      print('✅ Avatar upload success');
+      return true;
+    } else {
+      print('❌ Avatar upload failed with status: ${response.statusCode}');
       return false;
     }
+  } catch (e) {
+    print('❌ Exception during request: $e');
+    return false;
   }
+}
+
+
 
   static Future<File?> pickImage() async {
     final picker = ImagePicker();
@@ -76,7 +111,7 @@ static Future<bool> updateProfile(String name, String email) async {
 
   if (userId == null) return false;
 
-  final url = Uri.parse("http://10.93.89.181:5000/api/profile/edit");
+  final url = Uri.parse("http://192.168.1.16:5000/api/profile/edit");
   print("📤 Sending update to: $url");
 
   try {
