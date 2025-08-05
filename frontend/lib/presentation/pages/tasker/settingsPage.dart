@@ -12,6 +12,10 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   Map<String, dynamic>? _tasker;
   bool _isLoading = true;
+  final Color _primaryColor =  Colors.blue; // Modern purple shade
+  final Color _backgroundColor = const Color(0xFFF8F9FA); // Light background
+  final Color _cardColor = Colors.white;
+  final Color _textColor = const Color(0xFF2D3436); // Dark gray for text
 
   @override
   void initState() {
@@ -37,71 +41,111 @@ class _SettingsPageState extends State<SettingsPage> {
     final firstName = name.isNotEmpty ? name.split(" ").first : '?';
     final firstLetter = firstName.substring(0, 1).toUpperCase();
 
-    if (imageUrl.isNotEmpty) {
-      return CircleAvatar(
-        radius: 30,
-        backgroundImage: NetworkImage(imageUrl),
-      );
-    } else {
-      return Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: Colors.blue,
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Text(
-            firstLetter,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+    return Container(
+      width: 70,
+      height: 70,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: imageUrl.isEmpty
+            ? LinearGradient(
+                colors: [_primaryColor, Colors.purpleAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
           ),
-        ),
-      );
-    }
+        ],
+      ),
+      child: imageUrl.isNotEmpty
+          ? ClipOval(
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Center(
+                  child: Text(
+                    firstLetter,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : Center(
+              child: Text(
+                firstLetter,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+    );
   }
 
   Widget _buildWelcomeSection() {
     final name = _tasker?['fullName'] ?? 'Guest';
     final imageUrl = _tasker?['profilePic'] ?? '';
-    
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        _buildProfileAvatar(imageUrl, name),
-        const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hi ${name.split(" ").first}!',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
+    final rating = _tasker?['rating'] ?? 0.0;
+    final jobsCompleted = _tasker?['jobsCompleted'] ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _primaryColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          _buildProfileAvatar(imageUrl, name),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hi ${name.split(" ").first}!',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$rating • $jobsCompleted jobs',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Ready for your next job?',
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-        const Spacer(),
-        GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(context, 'notification');
-          },
-          child: const Icon(Icons.notifications_none, color: Colors.blue),
-        ),
-      ],
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, 'notification');
+            },
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
+          ),
+        ],
+      ),
     );
+  
   }
 
   Widget _buildSettingsItem({
@@ -109,20 +153,22 @@ class _SettingsPageState extends State<SettingsPage> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    bool showArrow = true,
+    Color? iconColor,
   }) {
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _cardColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
@@ -133,12 +179,12 @@ class _SettingsPageState extends State<SettingsPage> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: (iconColor ?? _primaryColor).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
-                color: Colors.blue,
+                color: iconColor ?? _primaryColor,
               ),
             ),
             const SizedBox(width: 16),
@@ -148,22 +194,25 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
                       fontSize: 16,
+                      color: _textColor,
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(
                       color: Colors.grey.shade600,
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            if (showArrow)
+              Icon(Icons.chevron_right, color: Colors.grey.shade400),
           ],
         ),
       ),
@@ -174,31 +223,54 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Select Language'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLanguageOption('English', true),
-              _buildLanguageOption('Spanish', false),
-              _buildLanguageOption('French', false),
-              _buildLanguageOption('German', false),
-            ],
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Select Language',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _textColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildLanguageOption('English', true),
+                _buildLanguageOption('Spanish', false),
+                _buildLanguageOption('French', false),
+                _buildLanguageOption('German', false),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'CANCEL',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('SAVE', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('CANCEL'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('SAVE'),
-            ),
-          ],
         );
       },
     );
@@ -206,12 +278,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildLanguageOption(String language, bool isSelected) {
     return ListTile(
+      contentPadding: EdgeInsets.zero,
       title: Text(language),
       trailing: isSelected
-          ? Icon(Icons.check, color: Colors.blue)
-          : null,
+          ? Icon(Icons.check_circle, color: _primaryColor)
+          : Icon(Icons.circle_outlined, color: Colors.grey.shade300),
       onTap: () {
-        Navigator.pop(context);
         // Implement language change
       },
     );
@@ -221,30 +293,53 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Select Theme'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildThemeOption('Light', true),
-              _buildThemeOption('Dark', false),
-              _buildThemeOption('System Default', false),
-            ],
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Select Theme',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _textColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildThemeOption('Light', true),
+                _buildThemeOption('Dark', false),
+                _buildThemeOption('System Default', false),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'CANCEL',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('SAVE', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('CANCEL'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('SAVE'),
-            ),
-          ],
         );
       },
     );
@@ -252,12 +347,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildThemeOption(String theme, bool isSelected) {
     return ListTile(
+      contentPadding: EdgeInsets.zero,
       title: Text(theme),
       trailing: isSelected
-          ? Icon(Icons.check, color: Colors.blue)
-          : null,
+          ? Icon(Icons.check_circle, color: _primaryColor)
+          : Icon(Icons.circle_outlined, color: Colors.grey.shade300),
       onTap: () {
-        Navigator.pop(context);
         // Implement theme change
       },
     );
@@ -267,25 +362,73 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Deactivate Account'),
-          content: const Text(
-              'Are you sure you want to deactivate your account? You can reactivate it later by logging in again.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('CANCEL'),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.warning_amber_rounded, 
+                    color: Colors.orange, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'Deactivate Account?',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _textColor,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Your profile will be hidden and you won\'t receive new job offers. You can reactivate anytime by logging back in.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: _textColor),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.shade50,
+                          foregroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          // Implement account deactivation
+                        },
+                        child: const Text('Deactivate'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Implement account deactivation
-              },
-              child: const Text('DEACTIVATE', style: TextStyle(color: Colors.red)),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -295,70 +438,81 @@ class _SettingsPageState extends State<SettingsPage> {
     return Column(
       children: [
         _buildSettingsItem(
-          icon: Icons.language,
-          title: 'Language',
-          subtitle: 'English',
+          icon: Icons.person_outline,
+          title: 'Profile Settings',
+          subtitle: 'Update your personal information',
           onTap: () {
-            _showLanguageDialog();
+            // Profile settings
           },
+          iconColor: Colors.blue,
         ),
         _buildSettingsItem(
-          icon: Icons.color_lens,
-          title: 'Theme',
-          subtitle: 'Light',
-          onTap: () {
-            _showThemeDialog();
-          },
-        ),
-        _buildSettingsItem(
-          icon: Icons.notifications,
+          icon: Icons.notifications_outlined,
           title: 'Notifications',
-          subtitle: 'Enabled',
+          subtitle: 'Customize your notifications',
           onTap: () {
             // Notification settings
           },
+          iconColor: Colors.orange,
         ),
         _buildSettingsItem(
-          icon: Icons.security,
+          icon: Icons.language,
+          title: 'Language',
+          subtitle: 'English',
+          onTap: _showLanguageDialog,
+          iconColor: Colors.green,
+        ),
+        _buildSettingsItem(
+          icon: Icons.color_lens_outlined,
+          title: 'Theme',
+          subtitle: 'Light',
+          onTap: _showThemeDialog,
+          iconColor: Colors.purple,
+        ),
+        _buildSettingsItem(
+          icon: Icons.lock_outline,
           title: 'Privacy & Security',
-          subtitle: 'Manage your data',
+          subtitle: 'Manage your data and security',
           onTap: () {
             // Privacy settings
           },
+          iconColor: Colors.indigo,
         ),
         _buildSettingsItem(
-          icon: Icons.help,
+          icon: Icons.help_outline,
           title: 'Help & Support',
           subtitle: 'FAQ, Contact us',
           onTap: () {
             // Help center
           },
+          iconColor: Colors.teal,
         ),
         _buildSettingsItem(
-          icon: Icons.info,
+          icon: Icons.info_outline,
           title: 'About',
           subtitle: 'App version 1.0.0',
           onTap: () {
             // About page
           },
+          iconColor: Colors.blueGrey,
         ),
         const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(top: 16),
-          child: ElevatedButton(
-            onPressed: () {
-              _showDeactivateDialog();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade50,
-              foregroundColor: Colors.red,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Deactivate Account'),
+        _buildSettingsItem(
+          icon: Icons.logout,
+          title: 'Logout',
+          subtitle: 'Sign out of your account',
+          onTap: () {
+            // Logout logic
+          },
+          showArrow: false,
+          iconColor: Colors.red,
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: _showDeactivateDialog,
+          child: const Text(
+            'Deactivate Account',
+            style: TextStyle(color: Colors.red),
           ),
         ),
       ],
@@ -368,35 +522,37 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
+        backgroundColor: _backgroundColor,
         body: Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(color: _primaryColor),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: _backgroundColor,
+      
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              _buildWelcomeSection(),
-              const SizedBox(height: 24),
-              const Text(
-                'Settings',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            _buildWelcomeSection(),
+            const SizedBox(height: 24),
+            Text(
+              'Preferences',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: _textColor,
               ),
-              const SizedBox(height: 16),
-              _buildSettingsSection(),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            _buildSettingsSection(),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );

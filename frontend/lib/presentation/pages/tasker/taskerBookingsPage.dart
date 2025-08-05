@@ -45,83 +45,99 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
     final name = _tasker?['fullName'] ?? 'Guest';
     final imageUrl = _tasker?['profilePic'] ?? '';
 
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-          child: imageUrl.isEmpty 
-              ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ))
-              : null,
-          backgroundColor: Colors.blue[600],
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hi ${name.split(' ').first}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Manage your bookings',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        IconButton(
-          icon: Icon(Icons.notifications_outlined, color: Colors.grey[700]),
-          onPressed: () => Navigator.pushNamed(context, 'notification'),
-        ),
-      ],
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+            child: imageUrl.isEmpty 
+                ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ))
+                : null,
+            backgroundColor: Colors.blue[600],
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hi ${name.split(' ').first}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Manage your bookings',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blue[50],
+            ),
+            child: IconButton(
+              icon: Icon(Icons.notifications_outlined, color: Colors.blue[600]),
+              onPressed: () => Navigator.pushNamed(context, 'notification'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildBookingStatusChip(bool isCompleted) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isCompleted ? Colors.green[50] : Colors.blue[50],
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isCompleted ? Colors.green[100]! : Colors.blue[100]!,
-          width: 1,
+    decoration: BoxDecoration(
+      color: isCompleted ? Colors.green[50] : Colors.blue[50],
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          isCompleted ? Icons.check_circle : Icons.access_time,
+          size: 16,
+          color: isCompleted ? Colors.green[600] : Colors.blue[600],
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isCompleted ? Icons.check_circle : Icons.access_time,
-            size: 16,
-            color: isCompleted ? Colors.green[600] : Colors.blue[600],
+        const SizedBox(width: 6),
+        Text(
+          isCompleted ? 'Completed' : 'Upcoming',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isCompleted ? Colors.green[800] : Colors.blue[800],
           ),
-          const SizedBox(width: 6),
-          Text(
-            isCompleted ? 'Completed' : 'Upcoming',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isCompleted ? Colors.green[800] : Colors.blue[800],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
+    ),
     );
   }
 
@@ -131,15 +147,18 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
     final date = booking['date'] ?? '';
     final time = booking['time'] ?? '';
 
-    return Card(
-      elevation: 0,
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Colors.grey[200]!,
-          width: 1,
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -163,11 +182,18 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
                 _buildBookingStatusChip(isCompleted),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.person_outline, size: 18, color: Colors.grey[600]),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.person_outline, size: 16, color: Colors.blue[600]),
+                ),
+                const SizedBox(width: 12),
                 Text(
                   user['name'] ?? 'Customer',
                   style: TextStyle(
@@ -177,11 +203,18 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.calendar_today, size: 18, color: Colors.grey[600]),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.calendar_today, size: 16, color: Colors.blue[600]),
+                ),
+                const SizedBox(width: 12),
                 Text(
                   date,
                   style: TextStyle(
@@ -190,8 +223,15 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Icon(Icons.access_time, size: 18, color: Colors.grey[600]),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.access_time, size: 16, color: Colors.blue[600]),
+                ),
+                const SizedBox(width: 12),
                 Text(
                   time,
                   style: TextStyle(
@@ -212,7 +252,8 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 0,
                   ),
                   onPressed: () {
                     // Handle mark as complete
@@ -237,10 +278,10 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
           padding: const EdgeInsets.only(top: 8, bottom: 12),
           child: Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
+              color: Colors.black87,
             ),
           ),
         ),
@@ -250,30 +291,63 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return Container(
+      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.only(top: 40),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.assignment_outlined,
             size: 72,
-            color: Colors.grey[300],
+            color: Colors.blue[100],
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'No bookings yet',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'When you get bookings, they\'ll appear here',
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[500],
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: 160,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                elevation: 0,
+              ),
+              onPressed: () {
+                // Refresh or other action
+              },
+              child: const Text('Refresh'),
             ),
           ),
         ],
@@ -285,18 +359,15 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
+        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text(
-                'Loading your bookings...',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                ),
+              const CircularProgressIndicator(
+                color: Colors.blue,
               ),
+              // const SizedBox(height: 16),
             ],
           ),
         ),
@@ -315,15 +386,10 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
             children: [
               _buildProfileHeader(),
               const SizedBox(height: 24),
-              const Text(
-                'Your Bookings',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+
               const SizedBox(height: 16),
-              if (!hasBookings) _buildEmptyState(),
+              if (!hasBookings) 
+                Center(child: _buildEmptyState()),
               if (hasBookings) ...[
                 _buildBookingsSection('Upcoming Bookings', _upcomingBookings, false),
                 const SizedBox(height: 8),
