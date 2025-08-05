@@ -1,6 +1,6 @@
-// settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/data/services/tasker_service.dart';
+import 'package:frontend/data/services/settings_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -12,10 +12,10 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   Map<String, dynamic>? _tasker;
   bool _isLoading = true;
-  final Color _primaryColor =  Colors.blue; // Modern purple shade
-  final Color _backgroundColor = const Color(0xFFF8F9FA); // Light background
+  final Color _primaryColor = Colors.blue;
+  final Color _backgroundColor = const Color(0xFFF8F9FA);
   final Color _cardColor = Colors.white;
-  final Color _textColor = const Color(0xFF2D3436); // Dark gray for text
+  final Color _textColor = const Color(0xFF2D3436);
 
   @override
   void initState() {
@@ -35,6 +35,192 @@ class _SettingsPageState extends State<SettingsPage> {
         _isLoading = false;
       });
     }
+  }
+
+ void _showChangePasswordDialog() {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool _obscureCurrentPassword = true;
+    bool _obscureNewPassword = true;
+    bool _obscureConfirmPassword = true;
+    bool _isUpdating = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Change Password',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: currentPasswordController,
+                      obscureText: _obscureCurrentPassword,
+                      decoration: InputDecoration(
+                        labelText: 'Current Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureCurrentPassword 
+                                ? Icons.visibility_off 
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setState(() {
+                            _obscureCurrentPassword = !_obscureCurrentPassword;
+                          }),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: newPasswordController,
+                      obscureText: _obscureNewPassword,
+                      decoration: InputDecoration(
+                        labelText: 'New Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureNewPassword 
+                                ? Icons.visibility_off 
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setState(() {
+                            _obscureNewPassword = !_obscureNewPassword;
+                          }),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: confirmPasswordController,
+                      obscureText: _obscureConfirmPassword,
+                      decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword 
+                                ? Icons.visibility_off 
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          }),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: _isUpdating ? null : () => Navigator.pop(context),
+                          child: Text(
+                            'CANCEL',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: _isUpdating
+                              ? null
+                              : () async {
+                                  if (newPasswordController.text != 
+                                      confirmPasswordController.text) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Passwords do not match'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  setState(() => _isUpdating = true);
+
+                                  try {
+                                    final response = await SettingsService.changePassword(
+                                      currentPasswordController.text,
+                                      newPasswordController.text,
+                                    );
+
+                                    if (response['success'] == true) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(response['message']),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(response['message']),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _isUpdating = false);
+                                    }
+                                  }
+                                },
+                          child: _isUpdating
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('SAVE'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   Widget _buildProfileAvatar(String imageUrl, String name) {
@@ -145,7 +331,6 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
-  
   }
 
   Widget _buildSettingsItem({
@@ -406,7 +591,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -471,6 +656,13 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         _buildSettingsItem(
           icon: Icons.lock_outline,
+          title: 'Change Password',
+          subtitle: 'Update your account password',
+          onTap: _showChangePasswordDialog,
+          iconColor: Colors.indigo,
+        ),
+        _buildSettingsItem(
+          icon: Icons.security_outlined,
           title: 'Privacy & Security',
           subtitle: 'Manage your data and security',
           onTap: () {
@@ -532,7 +724,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       backgroundColor: _backgroundColor,
-      
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Column(
