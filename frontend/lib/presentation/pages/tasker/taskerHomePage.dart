@@ -544,9 +544,9 @@ class _TaskerHomePageState extends State<TaskerHomePage> {
         if (label == 'Job Requests') {
           Navigator.pushNamed(context, 'jobRequests');
         } else if (label == 'Earnings') {
-          Navigator.pushNamed(context, 'earnings');
+          Navigator.pushNamed(context, 'earningsPage');
         } else if (label == 'Schedule') {
-          Navigator.pushNamed(context, 'schedule');
+          Navigator.pushNamed(context, 'schedulePage');
         } else if (label == 'History') {
           Navigator.pushNamed(context, 'history');
         }

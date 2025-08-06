@@ -58,7 +58,7 @@ class _NotificationPageState extends State<NotificationPage> {
       return;
     }
 
-    final uri = Uri.parse("http://10.93.89.181:5000/api/notifications/$userId?role=$role");
+    final uri = Uri.parse("http://192.168.1.16:5000/api/notifications/$userId?role=$role");
 
     try {
       final response = await http.get(uri);

@@ -255,9 +255,328 @@ class _TaskerBookingsPageState extends State<TaskerBookingsPage> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                   ),
-                  onPressed: () {
-                    // Handle mark as complete
-                  },
+  onPressed: () async {
+  final priceController = TextEditingController();
+  final focusNode = FocusNode();
+
+  final result = await showDialog<double>(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutQuint,
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.blue.shade100.withOpacity(0.3),
+                    Colors.blue.shade50.withOpacity(0.1),
+                  ],
+                ),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Animated Header
+                    TweenAnimationBuilder(
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 500),
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Opacity(
+                            opacity: value,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.teal.shade400,
+                                  Colors.blue.shade600,
+                                ],
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blue.shade300.withOpacity(0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.monetization_on_rounded,
+                              size: 36,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Final Service Price',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.blue.shade900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Enter the total amount in DZD',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.blueGrey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Modern Input Field
+                    Focus(
+                      onFocusChange: (hasFocus) {
+                        setState(() {});
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: focusNode.hasFocus 
+                                ? Colors.blue.shade400 
+                                : Colors.blue.shade100,
+                            width: focusNode.hasFocus ? 2 : 1.5,
+                          ),
+                          boxShadow: focusNode.hasFocus
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.blue.shade100.withOpacity(0.6),
+                                    blurRadius: 12,
+                                    spreadRadius: 2,
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: TextField(
+                          controller: priceController,
+                          focusNode: focusNode,
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue.shade900,
+                            letterSpacing: 0.5,
+                          ),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.blue.shade50.withOpacity(0.3),
+                            hintText: '0.00',
+                            hintStyle: TextStyle(
+                              color: Colors.blueGrey.shade300,
+                              fontSize: 18,
+                            ),
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.only(left: 16, right: 8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade100,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'DZD',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.blue.shade800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            suffixIcon: Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: Icon(
+                                Icons.currency_exchange_rounded,
+                                color: Colors.blue.shade500,
+                                size: 24,
+                              ),
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Animated Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TweenAnimationBuilder(
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            duration: const Duration(milliseconds: 600),
+                            curve: Curves.elasticOut,
+                            builder: (context, value, child) {
+                              return Transform.scale(
+                                scale: value,
+                                child: child,
+                              );
+                            },
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.blueGrey.shade700,
+                                side: BorderSide(
+                                  color: Colors.blueGrey.shade300,
+                                  width: 1.5,
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TweenAnimationBuilder(
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.elasticOut,
+                            builder: (context, value, child) {
+                              return Transform.scale(
+                                scale: value,
+                                child: child,
+                              );
+                            },
+                            child: ElevatedButton(
+                              onPressed: () {
+                                final enteredPrice = double.tryParse(priceController.text);
+                                if (enteredPrice != null && enteredPrice > 0) {
+                                  Navigator.pop(context, enteredPrice);
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue.shade700,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                                shadowColor: Colors.transparent,
+                              ),
+                              child: const Text(
+                                'Confirm Price',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+
+  // Keep your original completion logic exactly the same
+  if (result != null) {
+    try {
+      final response = await BookingService.markBookingAsCompleted(
+        bookingId: booking['_id'],
+        price: result,
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor: Colors.green[600],
+            content: const Text('Booking marked as completed'),
+          ),
+        );
+        _loadData();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor: Colors.red[600],
+            content: Text('Failed: ${response.body}'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.red[600],
+          content: Text('Error: $e'),
+        ),
+      );
+    }
+  }
+},
+
                   child: const Text('Mark as Completed'),
                 ),
               ),

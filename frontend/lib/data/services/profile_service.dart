@@ -111,7 +111,7 @@ static Future<bool> updateProfile(String name, String email) async {
 
   if (userId == null) return false;
 
-  final url = Uri.parse("http://192.168.1.16:5000/api/profile/edit");
+  final url = Uri.parse("http://192.168.102.181:5000/api/profile/edit");
   print("📤 Sending update to: $url");
 
   try {

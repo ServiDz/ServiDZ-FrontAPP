@@ -3,14 +3,16 @@ import 'package:frontend/presentation/pages/MainUserPage.dart';
 import 'package:frontend/presentation/pages/profile/tasker_profile.dart';
 import 'package:frontend/presentation/pages/tasker/MainTaskerPage.dart';
 import 'package:frontend/presentation/pages/tasker/certification_page.dart';
+import 'package:frontend/presentation/pages/tasker/earning_page.dart';
 import 'package:frontend/presentation/pages/tasker/job_requests_page.dart';
 import 'package:frontend/presentation/pages/tasker/ratingsPage.dart';
+import 'package:frontend/presentation/pages/tasker/schedule_page.dart';
 import 'package:frontend/presentation/pages/tasker/taskerBookingsPage.dart';
 import 'package:frontend/presentation/pages/tasker/taskerChatList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' as notif;
 import 'package:frontend/presentation/pages/auth/Tasker_singup.dart';
 import 'package:frontend/presentation/pages/chat/chat_page.dart';
 import 'package:frontend/presentation/pages/chat/chatsList.dart';
@@ -28,10 +30,8 @@ import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
 import 'package:frontend/presentation/pages/notification/notification_page.dart';
 import 'package:frontend/presentation/pages/tasker/tasker_chat_page.dart';
 
-
-// Initialize local notifications
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+final notif.FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    notif.FlutterLocalNotificationsPlugin();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -40,27 +40,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // ✅ Initialize Firebase
   await Firebase.initializeApp();
-
-  // ✅ Firebase Messaging background handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // ✅ Ask permission (especially for iOS)
   await FirebaseMessaging.instance.requestPermission();
 
-  // ✅ Initialize local notifications
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const notif.AndroidInitializationSettings initializationSettingsAndroid =
+      notif.AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  const InitializationSettings initializationSettings = InitializationSettings(
+  const notif.InitializationSettings initializationSettings = notif.InitializationSettings(
     android: initializationSettingsAndroid,
   );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  // ✅ Handle foreground messages
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
@@ -70,12 +62,12 @@ void main() async {
         notification.hashCode,
         notification.title,
         notification.body,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
+        notif.NotificationDetails(
+          android: notif.AndroidNotificationDetails(
             'high_importance_channel',
             'High Importance Notifications',
-            importance: Importance.max,
-            priority: Priority.high,
+            importance: notif.Importance.max,
+            priority: notif.Priority.high, // ✅ FIXED HERE
           ),
         ),
       );
@@ -87,7 +79,7 @@ void main() async {
   final refreshToken = prefs.getString('refreshToken');
   final userId = prefs.getString('userId');
 
-  String initialRoute = '/'; // default route
+  String initialRoute = '/';
 
   runApp(MyApp(initialRoute: initialRoute));
 }
@@ -137,12 +129,12 @@ class MyApp extends StatelessWidget {
         'taskerChatDetails': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return TaskerChatPage(
-          taskerId: args['taskerId'],
-          userId: args['otherUserId'],
-          userName: args['otherUserName'],
-          userAvatar: args['otherUserAvatar'],
-      );
-    },
+            taskerId: args['taskerId'],
+            userId: args['otherUserId'],
+            userName: args['otherUserName'],
+            userAvatar: args['otherUserAvatar'],
+          );
+        },
         'certificationPage': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return CertificationPage(
@@ -150,7 +142,7 @@ class MyApp extends StatelessWidget {
             taskerName: args['taskerName'],
           );
         },
-        'taskerProfile': (context) =>  TaskerProfilePage(),
+        'taskerProfile': (context) => TaskerProfilePage(),
         'taskerBookingsPage': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return TaskerBookingsPage(
@@ -161,7 +153,8 @@ class MyApp extends StatelessWidget {
         'taskerRatingsPage': (context) => const RatingsPage(),
         'mainTaskerPage': (context) => const MainTaskerPage(),
         'mainUserPage': (context) => const MainUserPage(),
-
+        'schedulePage': (context) => const SchedulePage(),
+        'earningsPage': (context) => const EarningsPage(),
       },
     );
   }

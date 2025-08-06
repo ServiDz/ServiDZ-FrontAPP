@@ -83,7 +83,7 @@ Future<Booking?> fetchNextJob() async {
 
 
 Future<List<Map<String, dynamic>>> fetchTaskerBookings(String taskerId) async {
-    final response = await http.get(Uri.parse('http://10.93.89.181:5000/api/bookings/$taskerId/summary'));
+    final response = await http.get(Uri.parse('http://192.168.1.16:5000/api/bookings/$taskerId/summary'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -98,5 +98,23 @@ Future<List<Map<String, dynamic>>> fetchTaskerBookings(String taskerId) async {
       throw Exception('Failed to fetch tasker bookings');
     }
   }
+
+
+  static Future<http.Response> markBookingAsCompleted({
+  required String bookingId,
+  required double price,
+}) async {
+  const baseUrl = 'http://192.168.1.16:5000'; // ✅ Use your actual server IP
+  final url = Uri.parse('$baseUrl/api/bookings/$bookingId/complete');
+
+  final response = await http.patch(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'price': price}),
+  );
+
+  return response;
+}
+
 
 }

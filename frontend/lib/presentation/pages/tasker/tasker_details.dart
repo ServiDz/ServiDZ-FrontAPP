@@ -16,7 +16,7 @@ class TaskerPage extends StatefulWidget {
 class _TaskerPageState extends State<TaskerPage> {
   Map<String, dynamic>? tasker;
   bool isLoading = true;
-  final String apiUrl = 'http://10.93.89.181:5000/api/taskers/getById';
+  final String apiUrl = 'http://192.168.1.16:5000/api/taskers/getById';
   final Color primaryColor = const Color(0xFF2196F3);
   final Color backgroundColor = const Color(0xFFF8FAFD);
   final double borderRadius = 16.0;
