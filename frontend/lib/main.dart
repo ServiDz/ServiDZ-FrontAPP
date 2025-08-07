@@ -29,6 +29,7 @@ import 'package:frontend/presentation/pages/tasker/tasker_details.dart';
 import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
 import 'package:frontend/presentation/pages/notification/notification_page.dart';
 import 'package:frontend/presentation/pages/tasker/tasker_chat_page.dart';
+import 'package:frontend/presentation/pages/tasker/tasker_certificate.dart' hide CertificationPage;
 
 final notif.FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     notif.FlutterLocalNotificationsPlugin();
@@ -155,6 +156,15 @@ class MyApp extends StatelessWidget {
         'mainUserPage': (context) => const MainUserPage(),
         'schedulePage': (context) => const SchedulePage(),
         'earningsPage': (context) => const EarningsPage(),
+        'taskerCertificate': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return TaskerCertificationPage(
+            certifications: args['certifications'],
+            taskerName: args['taskerName'],
+            taskerId: args['taskerId'],
+          );
+        },
+      
       },
     );
   }

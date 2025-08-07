@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/data/services/tasker_service.dart';
 import 'package:frontend/data/services/settings_service.dart';
+import 'package:frontend/presentation/pages/tasker/tasker_certificate.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -37,7 +39,39 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
- void _showChangePasswordDialog() {
+Future<void> _launchNativeEmail() async {
+  final email = 'servidzapp@gmail.com';
+  final subject = 'Help & Support Request';
+  final body = 'Hello Servidz Support Team,\n\n';
+
+  final mailtoUri = Uri(
+    scheme: 'mailto',
+    path: email,
+    queryParameters: {
+      'subject': subject,
+      'body': body,
+    },
+  );
+
+  try {
+    // Just try to launch, even if canLaunchUrl says false
+    await launchUrl(mailtoUri, mode: LaunchMode.externalApplication);
+  } catch (e) {
+    // Handle gracefully
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No email app found or failed to open email client.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
+
+
+  void _showChangePasswordDialog() {
     final currentPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
@@ -222,8 +256,6 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-
-  
 
   Widget _buildProfileAvatar(String imageUrl, String name) {
     final firstName = name.isNotEmpty ? name.split(" ").first : '?';
@@ -633,6 +665,26 @@ class _SettingsPageState extends State<SettingsPage> {
           },
           iconColor: Colors.blue,
         ),
+          _buildSettingsItem(
+          icon: Icons.verified,
+          title: 'Certifications',
+          subtitle: 'Update your certifications',
+          onTap: () {
+            {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskerCertificationPage(
+          certifications: _tasker?['certifications'] ?? [],
+          taskerName: _tasker?['fullName'] ?? 'Tasker',
+          taskerId: _tasker?['_id'] ?? '', // Make sure your API returns the tasker ID
+        ),
+      ),
+    );
+  }
+          },
+          iconColor: Colors.green,
+        ),
         _buildSettingsItem(
           icon: Icons.notifications_outlined,
           title: 'Notifications',
@@ -676,9 +728,7 @@ class _SettingsPageState extends State<SettingsPage> {
           icon: Icons.help_outline,
           title: 'Help & Support',
           subtitle: 'FAQ, Contact us',
-          onTap: () {
-            // Help center
-          },
+          onTap: _launchNativeEmail,
           iconColor: Colors.teal,
         ),
         _buildSettingsItem(
@@ -751,3 +801,4 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
+
