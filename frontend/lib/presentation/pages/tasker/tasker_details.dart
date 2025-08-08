@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/data/services/rating_service.dart';
 import 'package:frontend/presentation/pages/booking/booking_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,15 +17,23 @@ class TaskerPage extends StatefulWidget {
 class _TaskerPageState extends State<TaskerPage> {
   Map<String, dynamic>? tasker;
   bool isLoading = true;
-  final String apiUrl = 'http://192.168.1.16:5000/api/taskers/getById';
+  final String apiUrl = 'http://192.168.1.4:5000/api/taskers/getById';
   final Color primaryColor = const Color(0xFF2196F3);
   final Color backgroundColor = const Color(0xFFF8FAFD);
   final double borderRadius = 16.0;
+  double ratingValue = 0.0;
+  final TextEditingController reviewController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     fetchTaskerDetails();
+  }
+
+  @override
+  void dispose() {
+    reviewController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchTaskerDetails() async {
@@ -39,6 +48,7 @@ class _TaskerPageState extends State<TaskerPage> {
         setState(() {
           tasker = jsonDecode(response.body);
           isLoading = false;
+          ratingValue = tasker!['rating']?.toDouble() ?? 0.0;
         });
       } else {
         throw Exception('Failed to load tasker: ${response.body}');
@@ -48,6 +58,39 @@ class _TaskerPageState extends State<TaskerPage> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> submitRating() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please login to submit a rating')),
+      );
+      return;
+    }
+
+    try {
+      final result = await RatingService.submitRating(
+        taskerId: widget.taskerId,
+        userId: userId,
+        value: ratingValue,
+        review: reviewController.text,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
+
+      // Refresh tasker details to show updated rating
+      fetchTaskerDetails();
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error submitting rating: $e')),
+      );
     }
   }
 
@@ -81,7 +124,6 @@ class _TaskerPageState extends State<TaskerPage> {
       return;
     }
     
-    // Navigation to certification page - implement this route later
     Navigator.pushNamed(
       context,
       'certificationPage',
@@ -89,6 +131,93 @@ class _TaskerPageState extends State<TaskerPage> {
         'certifications': tasker!['certifications'],
         'taskerName': tasker!['fullName'] ?? 'Tasker',
       },
+    );
+  }
+
+  void _showRatingDialog() {
+    ratingValue = tasker!['rating']?.toDouble() ?? 0.0;
+    reviewController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+        elevation: 0,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Rate ${tasker!['fullName'] ?? 'Tasker'}',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                ),
+              ),
+              const SizedBox(height: 20),
+              StarRating(
+                rating: ratingValue,
+                onRatingChanged: (newRating) {
+                  setState(() {
+                    ratingValue = newRating;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: reviewController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Write your review here...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    borderSide: BorderSide(color: primaryColor),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(borderRadius),
+                      ),
+                    ),
+                    onPressed: () async {
+                      await submitRating();
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      'Submit',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -156,34 +285,37 @@ class _TaskerPageState extends State<TaskerPage> {
         Positioned(
           bottom: 20,
           left: 20,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(borderRadius),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.star, color: Colors.amber, size: 20),
-                const SizedBox(width: 6),
-                Text(
-                  tasker!['rating']?.toString() ?? 'N/A',
-                  style: TextStyle(
-                    color: primaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+          child: GestureDetector(
+            onTap: _showRatingDialog,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(borderRadius),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star, color: Colors.amber, size: 20),
+                  const SizedBox(width: 6),
+                  Text(
+                    tasker!['rating']?.toStringAsFixed(1) ?? 'N/A',
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -512,6 +644,56 @@ class _TaskerPageState extends State<TaskerPage> {
                     ),
                   ],
                 ),
+    );
+  }
+}
+
+class StarRating extends StatefulWidget {
+  final double rating;
+  final void Function(double) onRatingChanged;
+  final double starSize;
+  final Color color;
+
+  const StarRating({
+    super.key,
+    required this.rating,
+    required this.onRatingChanged,
+    this.starSize = 32.0,
+    this.color = Colors.amber,
+  });
+
+  @override
+  State<StarRating> createState() => _StarRatingState();
+}
+
+class _StarRatingState extends State<StarRating> {
+  late double _currentRating;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentRating = widget.rating;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _currentRating = index + 1.0;
+              widget.onRatingChanged(_currentRating);
+            });
+          },
+          child: Icon(
+            index < _currentRating.floor() ? Icons.star : Icons.star_border,
+            color: widget.color,
+            size: widget.starSize,
+          ),
+        );
+      }),
     );
   }
 }

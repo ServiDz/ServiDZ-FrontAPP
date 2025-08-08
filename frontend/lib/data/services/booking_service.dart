@@ -14,7 +14,7 @@ class BookingService {
     required String address,
     required String description,
   }) async {
-    const apiUrl = 'http://192.168.1.16:5000/api/bookings/create';
+    const apiUrl = 'http://192.168.1.4:5000/api/bookings/create';
 
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -48,7 +48,7 @@ Future<Booking?> fetchNextJob() async {
       throw Exception('Tasker ID not found in SharedPreferences');
     }
 
-    final url = 'http://192.168.1.16:5000/api/bookings/next-job';
+    final url = 'http://192.168.1.4:5000/api/bookings/next-job';
     print('🌐 Sending POST request to $url with taskerId in body...');
 
     final response = await http.post(
@@ -83,7 +83,7 @@ Future<Booking?> fetchNextJob() async {
 
 
 Future<List<Map<String, dynamic>>> fetchTaskerBookings(String taskerId) async {
-    final response = await http.get(Uri.parse('http://192.168.1.16:5000/api/bookings/$taskerId/summary'));
+    final response = await http.get(Uri.parse('http://192.168.1.4:5000/api/bookings/$taskerId/summary'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -104,7 +104,7 @@ Future<List<Map<String, dynamic>>> fetchTaskerBookings(String taskerId) async {
   required String bookingId,
   required double price,
 }) async {
-  const baseUrl = 'http://192.168.1.16:5000'; // ✅ Use your actual server IP
+  const baseUrl = 'http://192.168.1.4:5000'; // ✅ Use your actual server IP
   final url = Uri.parse('$baseUrl/api/bookings/$bookingId/complete');
 
   final response = await http.patch(

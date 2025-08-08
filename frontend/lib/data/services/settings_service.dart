@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as path;
 
 class SettingsService {
-  static const String baseUrl = 'http://192.168.1.16:5000';
+  static const String baseUrl = 'http://192.168.1.4:5000';
 
   // 🔐 Helper to get token
   static Future<String?> _getToken() async {

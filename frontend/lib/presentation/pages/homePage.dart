@@ -210,9 +210,10 @@ class _HomePageState extends State<HomePage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Hi!', style: TextStyle(fontSize: 14)),
+                  const SizedBox(height: 4),
+                  const Text('Hello 👋', style: TextStyle(fontSize: 14)),
                   Text(
-                    name.split(" ").first,
+                    name,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -344,110 +345,186 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildProfessionalCard(Tasker pro) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          'taskerDetails',
-          arguments: {'id': pro.id},
-        );
-      },
-      child: Card(
-        color: _cardBackground,
-        elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+ Widget _buildProfessionalCard(Tasker pro) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.pushNamed(
+        context,
+        'taskerDetails',
+        arguments: {'id': pro.id},
+      );
+    },
+    child: Card(
+      color:  Colors.white,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color:  _primaryColor.withOpacity(0.1),
+          width: 1,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  pro.profilePic,
-                  width: 100,
-                  height: 120,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 100,
-                    height: 120,
-                    color: _primaryColor.withOpacity(0.1),
-                    child: Icon(
-                      Icons.person,
-                      size: 40,
-                      color: _primaryColor,
-                    ),
-                  ),
-                ),
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: SizedBox(
+        height: 140,
+        child: Row(
+          children: [
+            // Profile Image - Flush with card edge
+            ClipRRect(
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(20),
+                right: Radius.circular(12),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      pro.fullName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.build, size: 16, color: _primaryColor),
-                        const SizedBox(width: 6),
-                        Text(pro.profession),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, size: 16, color: _primaryColor),
-                        const SizedBox(width: 6),
-                        Text(pro.location),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.circle,
-                            size: 10,
-                            color: pro.isAvailable
-                                ? Colors.green
-                                : Colors.red),
-                        const SizedBox(width: 6),
-                        Text(
-                          pro.isAvailable ? 'Available' : 'Unavailable',
-                          style: TextStyle(
-                            color: pro.isAvailable ? Colors.green : Colors.red,
+              child: SizedBox(
+                width: 120,
+                height: double.infinity,
+                child: pro.profilePic.isNotEmpty
+                    ? Image.network(
+                        pro.profilePic,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: progress.expectedTotalBytes != null
+                                  ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                                  : null,
+                              strokeWidth: 2,
+                              color: _primaryColor,
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => Container(
+                          color: _primaryColor.withOpacity(0.05),
+                          child: Center(
+                            child: Icon(
+                              Icons.person,
+                              size: 40,
+                              color: _primaryColor.withOpacity(0.3),
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: List.generate(
-                        5,
-                        (i) => Icon(
-                          Icons.star,
-                          size: 18,
-                          color: i < pro.rating.round()
-                              ? Colors.orange
-                              : Colors.grey.shade300,
+                      )
+                    : Container(
+                        color: _primaryColor.withOpacity(0.05),
+                        child: Center(
+                          child: Icon(
+                            Icons.person,
+                            size: 40,
+                            color: _primaryColor.withOpacity(0.3),
+                          ),
                         ),
                       ),
+              ),
+            ),
+
+            // Details Section
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          pro.fullName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.work_outline,
+                              size: 16,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              pro.profession,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 16,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                pro.location,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                ...List.generate(
+                                  5,
+                                  (i) => Icon(
+                                    Icons.star_rounded,
+                                    size: 18,
+                                    color: i < pro.rating.round()
+                                        ? Colors.amber
+                                        : Colors.grey.shade300,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: _primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                pro.isAvailable ? 'Available' : 'Busy',
+                                style: TextStyle(
+                                  color: pro.isAvailable ? Colors.green : Colors.red,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
 }

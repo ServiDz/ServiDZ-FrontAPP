@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,7 @@ class _NotificationPageState extends State<NotificationPage> {
   List<Map<String, dynamic>> filteredNotifications = [];
   bool isLoading = true;
   bool _hasError = false;
+  bool _ratingDialogShown = false;
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -50,7 +52,6 @@ class _NotificationPageState extends State<NotificationPage> {
         : prefs.getString('userId');
 
     if (userId == null || role == null) {
-      print("❌ Missing userId/taskerId or role");
       setState(() {
         _hasError = true;
         isLoading = false;
@@ -58,31 +59,118 @@ class _NotificationPageState extends State<NotificationPage> {
       return;
     }
 
-    final uri = Uri.parse("http://192.168.1.16:5000/api/notifications/$userId?role=$role");
+    final uri = Uri.parse("http://192.168.1.4:5000/api/notifications/$userId?role=$role");
 
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        final notifList = List<Map<String, dynamic>>.from(data['notifications']);
         setState(() {
-          notifications = List<Map<String, dynamic>>.from(data['notifications']);
-          filteredNotifications = List.from(notifications);
+          notifications = notifList;
+          filteredNotifications = List.from(notifList);
           isLoading = false;
         });
+
+        _checkAndShowRatingDialog(notifList);
       } else {
-        print("❌ Failed: ${response.statusCode} - ${response.body}");
         setState(() {
           _hasError = true;
           isLoading = false;
         });
       }
     } catch (e) {
-      print("❌ Exception while fetching notifications: $e");
       setState(() {
         _hasError = true;
         isLoading = false;
       });
     }
+  }
+
+  void _checkAndShowRatingDialog(List<Map<String, dynamic>> notifs) async {
+    if (_ratingDialogShown) return;
+    for (var notif in notifs) {
+      if (notif['type'] == 'booking_completed') {
+        _ratingDialogShown = true;
+        await Future.delayed(Duration(milliseconds: 300));
+        _showRatingDialog();
+        break;
+      }
+    }
+  }
+
+  void _showRatingDialog() {
+    double rating = 3;
+    TextEditingController reviewController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Rate Your Service'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('How was your experience with the tasker?'),
+            const SizedBox(height: 12),
+            RatingBar.builder(
+              initialRating: 3,
+              minRating: 1,
+              direction: Axis.horizontal,
+              allowHalfRating: true,
+              itemCount: 5,
+              itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+              itemBuilder: (context, _) => const Icon(
+                Icons.star,
+                color: Colors.amber,
+              ),
+              onRatingUpdate: (value) {
+                rating = value;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reviewController,
+              decoration: InputDecoration(
+                hintText: 'Write a review (optional)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Later'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              final userId = prefs.getString('userId');
+              final taskerId = prefs.getString('lastTaskerId'); // Make sure you save this after booking
+              if (userId != null && taskerId != null) {
+                await http.post(
+                  Uri.parse('http://192.168.1.16:5000/api/tasker/rate'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode({
+                    'userId': userId,
+                    'taskerId': taskerId,
+                    'value': rating,
+                    'review': reviewController.text,
+                  }),
+                );
+              }
+              Navigator.pop(context);
+            },
+            child: Text('Submit'),
+          )
+        ],
+      ),
+    );
   }
 
   Map<String, List<Map<String, dynamic>>> _groupNotifications() {
@@ -188,6 +276,7 @@ class _NotificationPageState extends State<NotificationPage> {
               ),
             ),
           ),
+
           if (isLoading)
             const SliverToBoxAdapter(
               child: Center(

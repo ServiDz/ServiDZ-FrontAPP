@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthService {
-  final String baseUrl = 'http://192.168.1.16:5000/api/auth';
+  final String baseUrl = 'http://192.168.1.4:5000/api/auth';
 
   // ✅ Reusable storage method
  Future<void> _storeAuthData(String accessToken, String refreshToken, Map<String, dynamic> user, String role) async {
@@ -171,7 +171,7 @@ class AuthService {
   // ✅ Tasker Registration
   Future<Map<String, dynamic>> registerTasker(Map<String, String> taskerData) async {
     final response = await http.post(
-      Uri.parse('http://10.93.89.181:5000/api/tasker/auth/register'),
+      Uri.parse('http://192.168.1.4:5000/api/tasker/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(taskerData),
     );

@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class TaskerChatService {
-  final String baseUrl = "http://192.168.1.16:5000/api";
-  final String socketUrl = "http://192.168.1.16:5000";
+  final String baseUrl = "http://192.168.1.4:5000/api";
+  final String socketUrl = "http://192.168.1.4:5000";
 
   late IO.Socket _socket;
   late String taskerId;

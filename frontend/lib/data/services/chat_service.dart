@@ -12,7 +12,7 @@ class ChatService {
 
   Future<List<Map<String, dynamic>>> fetchMessages() async {
     final res = await http.post(
-      Uri.parse('http://192.168.1.16:5000/api/chat/getMessages'),
+      Uri.parse('http://192.168.1.4:5000/api/chat/getMessages'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'userId': userId, 'taskerId': taskerId}),
     );
@@ -29,7 +29,7 @@ class ChatService {
     required Function(String, String) onEdit,
     required Function(String) onDelete,
   }) {
-    socket = IO.io('http://10.93.89.181:5000', {
+    socket = IO.io('http://192.168.1.4:5000', {
       'transports': ['websocket'],
       'autoConnect': true,
     });
@@ -59,7 +59,7 @@ class ChatService {
 
   Future<void> editMessage(String messageId, String newText) async {
     final res = await http.put(
-      Uri.parse('http://192.168.1.16:5000/api/chat/editMessage/$messageId'),
+      Uri.parse('http://192.168.1.4:5000/api/chat/editMessage/$messageId'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'newText': newText,
@@ -77,7 +77,7 @@ class ChatService {
 
   Future<void> deleteMessage(String messageId) async {
     final res = await http.delete(
-      Uri.parse('http://192.168.1.16:5000/api/chat/deleteMessage/$messageId'),
+      Uri.parse('http://192.168.1.4:5000/api/chat/deleteMessage/$messageId'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'userId': userId,
@@ -105,7 +105,7 @@ class ChatService {
 
   if (storedUserId != null) {
     final response = await http.post(
-      Uri.parse('http://192.168.1.16:5000/api/chat/chat-list'),
+      Uri.parse('http://192.168.1.4:5000/api/chat/chat-list'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'userId': storedUserId}),
     );

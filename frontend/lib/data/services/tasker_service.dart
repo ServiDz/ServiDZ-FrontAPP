@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/tasker_model.dart';
 
 class TaskerService {
-  final String _baseUrl = 'http://192.168.1.16:5000/api/taskers/all';
+  final String _baseUrl = 'http://192.168.1.4:5000/api/taskers/all';
 
   Future<List<Tasker>> getAllTaskers() async {
     final url = Uri.parse(_baseUrl);
@@ -29,7 +29,7 @@ Future<Map<String, dynamic>?> fetchTaskerProfile() async {
     return null;
   }
 
-  final url = Uri.parse('http://192.168.1.16:5000/api/tasker/profile');
+  final url = Uri.parse('http://192.168.1.4:5000/api/tasker/profile');
   print('🌐 Sending GET request to $url');
 
   try {
@@ -60,7 +60,7 @@ Future<Map<String, dynamic>?> fetchTaskerProfile() async {
 
 
 Future<Map<String, dynamic>> fetchTaskerRatings(String taskerId) async {
-    final response = await http.get(Uri.parse('http://192.168.1.16:5000/api/tasker/$taskerId/ratings'));
+    final response = await http.get(Uri.parse('http://192.168.1.4:5000/api/tasker/$taskerId/ratings'));
 
     if (response.statusCode == 200) {
       print('Ratings fetched successfully');
