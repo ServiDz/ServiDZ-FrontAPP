@@ -30,6 +30,7 @@ import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
 import 'package:frontend/presentation/pages/notification/notification_page.dart';
 import 'package:frontend/presentation/pages/tasker/tasker_chat_page.dart';
 import 'package:frontend/presentation/pages/tasker/tasker_certificate.dart' hide CertificationPage;
+import 'package:frontend/presentation/pages/tasker/professional_info.dart';
 
 final notif.FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     notif.FlutterLocalNotificationsPlugin();
@@ -164,7 +165,8 @@ class MyApp extends StatelessWidget {
             taskerId: args['taskerId'],
           );
         },
-      
+        'professionalInfo': (context) => const ProfessionalProfilePage(),
+
       },
     );
   }

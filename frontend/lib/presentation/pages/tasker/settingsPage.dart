@@ -661,7 +661,7 @@ Future<void> _launchNativeEmail() async {
           title: 'Profile Settings',
           subtitle: 'Update your personal information',
           onTap: () {
-            // Profile settings
+            Navigator.pushNamed(context, 'professionalInfo');
           },
           iconColor: Colors.blue,
         ),
