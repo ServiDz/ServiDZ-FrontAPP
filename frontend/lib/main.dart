@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/presentation/pages/MainUserPage.dart';
+import 'package:frontend/presentation/pages/booking/user_bookings.dart';
 import 'package:frontend/presentation/pages/profile/tasker_profile.dart';
 import 'package:frontend/presentation/pages/tasker/MainTaskerPage.dart';
 import 'package:frontend/presentation/pages/tasker/certification_page.dart';
@@ -23,7 +24,6 @@ import 'package:frontend/presentation/pages/auth/signup.dart';
 import 'package:frontend/presentation/pages/RoleSelection.dart';
 import 'package:frontend/presentation/pages/getStarted.dart';
 import 'package:frontend/presentation/pages/homePage.dart';
-import 'package:frontend/presentation/pages/profile/edit_profile_page.dart';
 import 'package:frontend/presentation/pages/profile/profile_page.dart';
 import 'package:frontend/presentation/pages/tasker/tasker_details.dart';
 import 'package:frontend/presentation/pages/booking/confirmBooking.dart';
@@ -108,10 +108,6 @@ class MyApp extends StatelessWidget {
           return TaskerPage(taskerId: args['id']);
         },
         'profile': (context) => ProfilePage(),
-        'editProfile': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map;
-          return EditProfilePage(user: args['user']);
-        },
         'chatsList': (context) => ChatsListPage(),
         'chatDetails': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
@@ -166,6 +162,7 @@ class MyApp extends StatelessWidget {
           );
         },
         'professionalInfo': (context) => const ProfessionalProfilePage(),
+        'userBookings': (context) => UserBookingsPage(),
 
       },
     );
