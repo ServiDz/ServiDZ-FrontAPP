@@ -124,7 +124,7 @@ Future<void> markAsRead(String otherUserId, String chatId) async {
   if (userId.isEmpty) return;
 
   final res = await http.put(
-    Uri.parse('http://192.168.1.16:5000/api/chat/mark-read'),
+    Uri.parse('http://192.168.1.4:5000/api/chat/mark-read'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'userId': userId,
@@ -147,7 +147,7 @@ Future<void> markAsRead(String otherUserId, String chatId) async {
 
   static Future<List<Map<String, dynamic>>> fetchChatList(String userId) async {
     final response = await http.post(
-      Uri.parse('http://192.168.1.16:5000/api/chat/chat-list'),
+      Uri.parse('http://192.168.1.4:5000/api/chat/chat-list'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'userId': userId}),
     );
@@ -165,7 +165,7 @@ Future<void> markAsRead(String otherUserId, String chatId) async {
 Future<List<Map<String, dynamic>>> searchUsers(String query) async {
   print("Searching users for query: $query");
 
-  final url = 'http://192.168.1.16:5000/api/chat/search-users?query=$query';
+  final url = 'http://192.168.1.4:5000/api/chat/search-users?query=$query';
   print("Sending GET request to: $url");
 
   final response = await http.get(Uri.parse(url));

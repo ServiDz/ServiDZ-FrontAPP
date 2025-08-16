@@ -10,6 +10,7 @@ import 'package:frontend/presentation/pages/tasker/ratingsPage.dart';
 import 'package:frontend/presentation/pages/tasker/schedule_page.dart';
 import 'package:frontend/presentation/pages/tasker/taskerBookingsPage.dart';
 import 'package:frontend/presentation/pages/tasker/taskerChatList.dart';
+import 'package:frontend/presentation/pages/view_more_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -31,6 +32,7 @@ import 'package:frontend/presentation/pages/notification/notification_page.dart'
 import 'package:frontend/presentation/pages/tasker/tasker_chat_page.dart';
 import 'package:frontend/presentation/pages/tasker/tasker_certificate.dart' hide CertificationPage;
 import 'package:frontend/presentation/pages/tasker/professional_info.dart';
+
 
 final notif.FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     notif.FlutterLocalNotificationsPlugin();
@@ -163,6 +165,7 @@ class MyApp extends StatelessWidget {
         },
         'professionalInfo': (context) => const ProfessionalProfilePage(),
         'userBookings': (context) => UserBookingsPage(),
+        'viewMore': (context) => const ViewMore(),
 
       },
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/data/services/tasker_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ProfessionalProfilePage extends StatefulWidget {
   const ProfessionalProfilePage({super.key});
@@ -16,6 +18,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   String profileImageUrl = '';
   bool isLoading = true;
   bool isSaving = false;
+  bool isUploadingImage = false;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -23,6 +26,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
   final TextEditingController _locationController = TextEditingController();
 
   final TaskerService _taskerService = TaskerService();
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -67,6 +71,39 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
     } finally {
       if (mounted) {
         setState(() => isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _updateProfilePicture() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
+
+      if (pickedFile != null && mounted) {
+        setState(() => isUploadingImage = true);
+        
+        final File imageFile = File(pickedFile.path);
+        final success = await _taskerService.updateTaskerAvatar(imageFile);
+
+        if (success && mounted) {
+          await _fetchProfileData();
+          _showSnackBar('Profile picture updated successfully!', isError: false);
+        } else if (mounted) {
+          _showSnackBar('Failed to update profile picture');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking/uploading image: $e');
+      if (mounted) {
+        _showSnackBar('Error updating profile picture: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isUploadingImage = false);
       }
     }
   }
@@ -228,7 +265,7 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.blue),
         actions: [
-          if (isSaving)
+          if (isSaving || isUploadingImage)
             const Padding(
               padding: EdgeInsets.only(right: 16.0),
               child: Center(
@@ -267,21 +304,43 @@ class _ProfessionalProfilePageState extends State<ProfessionalProfilePage> {
                           ),
                           color: Colors.grey[100],
                         ),
-                        child: profileImageUrl.isNotEmpty
-                            ? ClipOval(
-                                child: Image.network(
-                                  profileImageUrl,
-                                  fit: BoxFit.cover,
-                                ),
+                        child: isUploadingImage
+                            ? const Center(
+                                child: CircularProgressIndicator(color: Colors.blue),
                               )
-                            : const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: Colors.grey,
-                              ),
+                            : profileImageUrl.isNotEmpty
+                                ? ClipOval(
+                                    child: Image.network(
+                                      profileImageUrl,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded /
+                                                    loadingProgress.expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return const Icon(
+                                          Icons.person,
+                                          size: 60,
+                                          color: Colors.grey,
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: Colors.grey,
+                                  ),
                       ),
                       GestureDetector(
-                        onTap: () {}, // Add photo upload functionality
+                        onTap: _updateProfilePicture,
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: const BoxDecoration(

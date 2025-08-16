@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> loadTaskers() async {
     try {
-      final result = await _taskerService.getAllTaskers();
+      final result = await _taskerService.getTopRatedTaskers();
       setState(() {
         taskers = result;
         isLoading = false;
@@ -316,15 +316,20 @@ class _HomePageState extends State<HomePage> {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, 'allProfessionals');
+                  Navigator.pushNamed(context, 'viewMore');
                 },
-                child: Text(
-                  'View all',
-                  style: TextStyle(
-                    color: _primaryColor,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
+              child: GestureDetector(
+  onTap: () {
+    Navigator.pushNamed(context, 'viewMore');
+  },
+  child: Text(
+    'View all',
+    style: TextStyle(
+      color: _primaryColor,
+      decoration: TextDecoration.underline,
+    ),
+  ),
+)
               ),
             ],
           ),
