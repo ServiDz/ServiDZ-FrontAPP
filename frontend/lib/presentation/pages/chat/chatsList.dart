@@ -14,16 +14,15 @@ class _ChatsListPageState extends State<ChatsListPage> {
   List<Map<String, dynamic>> searchResults = [];
   bool isSearching = false;
   String userId = "";
-  int _currentIndex = 1;
   final TextEditingController _searchController = TextEditingController();
+  final ChatService _chatService = ChatService(userId: '', taskerId: '');
 
-  // Updated color scheme
-  final Color _primaryColor = Colors.blue;
-  final Color _backgroundColor = const Color(0xFFF8FAFC);
-  final Color _cardColor = Colors.white;
-  final Color _unreadColor = const Color(0xFF2563EB);
-  final Color _subtitleColor = const Color(0xFF64748B);
-  final Color _searchBackground = const Color(0xFFF1F5F9);
+  // Color scheme
+  final Color _primaryBlue = Color(0xFF2196F3); // Modern blue
+  final Color _white = Colors.white;
+  final Color _lightGrey = Color(0xFFF5F5F5);
+  final Color _darkGrey = Color(0xFF757575);
+  final Color _unreadBlue = Color(0xFFE3F2FD);
 
   @override
   void initState() {
@@ -37,6 +36,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
     if (id.isNotEmpty) {
       setState(() {
         userId = id;
+        _chatService.userId = id;
       });
       _fetchChats(id);
     }
@@ -44,7 +44,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
   Future<void> _fetchChats(String id) async {
     try {
-      final chats = await ChatService(userId: id, taskerId: '').loadUserIdAndFetchChats();
+      final chats = await _chatService.loadUserIdAndFetchChats();
       setState(() {
         chatList = chats;
       });
@@ -56,16 +56,14 @@ class _ChatsListPageState extends State<ChatsListPage> {
   Future<void> _searchUsers(String query) async {
     if (query.isEmpty) {
       setState(() {
-        isSearching = false;
         searchResults = [];
       });
       return;
     }
 
     try {
-      final users = await ChatService(userId: '', taskerId: '').searchUsers(query);
+      final users = await _chatService.searchUsers(query);
       setState(() {
-        isSearching = true;
         searchResults = users;
       });
     } catch (e) {
@@ -73,7 +71,33 @@ class _ChatsListPageState extends State<ChatsListPage> {
     }
   }
 
-  void _navigateToChatPage(Map<String, dynamic> user) {
+  Future<void> _markAsRead(String otherUserId, String chatId) async {
+    if (userId.isEmpty) return;
+
+    try {
+      await _chatService.markAsRead(otherUserId, chatId);
+      
+      setState(() {
+        for (var chat in chatList) {
+          if (chat['chatId'] == chatId) {
+            for (var msg in chat['messages']) {
+              if (msg['receiverId'] == userId) {
+                msg['isRead'] = true;
+              }
+            }
+          }
+        }
+      });
+    } catch (e) {
+      print("Failed to mark as read: $e");
+    }
+  }
+
+  void _navigateToChatPage(Map<String, dynamic> user) async {
+    if (user['chatId'] != null) {
+      await _markAsRead(user['userId'], user['chatId']);
+    }
+
     Navigator.pushNamed(
       context,
       'chatDetails',
@@ -82,8 +106,11 @@ class _ChatsListPageState extends State<ChatsListPage> {
         'otherUserId': user['userId'],
         'otherUserName': user['name'],
         'otherUserAvatar': user['avatar'],
+        'chatId': user['chatId'],
       },
-    );
+    ).then((_) {
+      _fetchChats(userId);
+    });
   }
 
   String _formatTime(dynamic timestamp) {
@@ -92,17 +119,41 @@ class _ChatsListPageState extends State<ChatsListPage> {
     return "${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}";
   }
 
+  Widget _buildUserAvatar(String? avatarUrl, String name) {
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: _primaryBlue.withOpacity(0.1),
+      backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+      child: avatarUrl == null 
+          ? Text(
+              name.isNotEmpty ? name[0].toUpperCase() : "?",
+              style: TextStyle(
+                color: _primaryBlue,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          : null,
+    );
+  }
+
   Widget _buildChatList() {
     if (chatList.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: _primaryColor),
+            Icon(
+              Icons.forum_outlined,
+              size: 60,
+              color: _darkGrey,
+            ),
             const SizedBox(height: 16),
             Text(
-              'Loading conversations...',
-              style: TextStyle(color: _subtitleColor),
+              'No conversations yet',
+              style: TextStyle(
+                fontSize: 18,
+                color: _darkGrey,
+              ),
             ),
           ],
         ),
@@ -112,64 +163,35 @@ class _ChatsListPageState extends State<ChatsListPage> {
     return ListView.separated(
       padding: const EdgeInsets.only(top: 8),
       itemCount: chatList.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => Divider(height: 1, color: _lightGrey),
       itemBuilder: (context, index) {
         final chat = chatList[index];
         final latestMessage = chat["messages"].isNotEmpty ? chat["messages"][0] : {};
         final hasUnread = chat["messages"].any(
           (msg) => msg["isRead"] == false && msg["receiverId"] == userId,
         );
+        final messageText = latestMessage["message"] ?? "No messages yet";
+        final timeText = _formatTime(latestMessage["timestamp"]);
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: _cardColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+          color: hasUnread ? _unreadBlue : _white,
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            leading: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey.shade200,
-                image: chat["avatar"] != null 
-                    ? DecorationImage(
-                        image: NetworkImage(chat["avatar"]),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: chat["avatar"] == null 
-                  ? Icon(Icons.person, size: 24, color: Colors.grey.shade600)
-                  : null,
-            ),
+            leading: _buildUserAvatar(chat["avatar"], chat["name"]),
             title: Text(
               chat["name"],
               style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: hasUnread ? _primaryColor : Colors.black,
+                fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                color: Colors.black87,
               ),
             ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                latestMessage["message"] ?? "No messages yet",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: hasUnread ? _primaryColor : _subtitleColor,
-                  fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
-                ),
+            subtitle: Text(
+              messageText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: hasUnread ? Colors.black87 : _darkGrey,
+                fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
               ),
             ),
             trailing: Column(
@@ -177,19 +199,19 @@ class _ChatsListPageState extends State<ChatsListPage> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  _formatTime(latestMessage["timestamp"]),
+                  timeText,
                   style: TextStyle(
-                    color: hasUnread ? _primaryColor : _subtitleColor,
+                    color: hasUnread ? _primaryBlue : _darkGrey,
                     fontSize: 12,
                   ),
                 ),
                 if (hasUnread)
                   Container(
                     margin: const EdgeInsets.only(top: 4),
-                    width: 8,
-                    height: 8,
+                    width: 10,
+                    height: 10,
                     decoration: BoxDecoration(
-                      color: _primaryColor,
+                      color: _primaryBlue,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -205,9 +227,22 @@ class _ChatsListPageState extends State<ChatsListPage> {
   Widget _buildSearchResults() {
     if (searchResults.isEmpty && _searchController.text.isNotEmpty) {
       return Center(
-        child: Text(
-          "No users found",
-          style: TextStyle(color: _subtitleColor),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 60,
+              color: _darkGrey,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "No users found",
+              style: TextStyle(
+                color: _darkGrey,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -215,78 +250,47 @@ class _ChatsListPageState extends State<ChatsListPage> {
     return ListView.separated(
       padding: const EdgeInsets.only(top: 8),
       itemCount: searchResults.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => Divider(height: 1, color: _lightGrey),
       itemBuilder: (context, index) {
         final user = searchResults[index];
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: _cardColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            leading: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey.shade200,
-                image: user['avatar'] != null 
-                    ? DecorationImage(
-                        image: NetworkImage(user['avatar']),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: user['avatar'] == null 
-                  ? Icon(Icons.person, size: 24, color: Colors.grey.shade600)
-                  : null,
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          leading: _buildUserAvatar(user['avatar'], user['name'] ?? 'User'),
+          title: Text(
+            user['name'] ?? 'User',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
-            title: Text(
-              user['name'] ?? 'User',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            onTap: () => _navigateToChatPage(user),
           ),
+          trailing: Icon(
+            Icons.message_outlined,
+            color: _primaryBlue,
+            size: 20,
+          ),
+          onTap: () => _navigateToChatPage(user),
         );
       },
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _backgroundColor,
+      backgroundColor: _white,
       appBar: AppBar(
         title: Text(
           'Messages',
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
             color: Colors.blue,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
         ),
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit, color: Colors.blue),
-            onPressed: () {
-              // Add your edit functionality here
-            },
-          ),
-        ],
+        backgroundColor: _white,
+        centerTitle: false,
       ),
       body: Column(
         children: [
@@ -294,17 +298,24 @@ class _ChatsListPageState extends State<ChatsListPage> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Container(
               decoration: BoxDecoration(
-                color: _searchBackground,
+                color: _lightGrey,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search users...',
-                  hintStyle: TextStyle(color: _subtitleColor),
-                  prefixIcon: Icon(Icons.search, color: _subtitleColor),
-                  filled: true,
-                  fillColor: Colors.transparent,
+                  hintStyle: TextStyle(color: _darkGrey),
+                  prefixIcon: Icon(Icons.search, color: _darkGrey),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.close, color: _darkGrey),
+                          onPressed: () {
+                            _searchController.clear();
+                            _searchUsers('');
+                          },
+                        )
+                      : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -313,11 +324,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
             ),
           ),
           Expanded(
-            child: isSearching ? _buildSearchResults() : _buildChatList(),
+            child: _searchController.text.isEmpty ? _buildChatList() : _buildSearchResults(),
           ),
         ],
       ),
-
     );
   }
 }

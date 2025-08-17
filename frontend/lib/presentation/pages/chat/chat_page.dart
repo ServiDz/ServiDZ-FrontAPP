@@ -31,7 +31,7 @@ class _ChatPageState extends State<ChatPage> {
   int? editingIndex;
   bool isComposing = false;
 
-  final Color userColor = const Color(0xFF00386F);
+  final Color userColor =  Colors.blue;
   final Color accentColor = const Color(0xFF4CAF50);
   final Color otherColor = Colors.grey.shade200;
   final Color background = Colors.grey.shade50;
@@ -40,14 +40,28 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     chatService = ChatService(userId: widget.userId, taskerId: widget.otherUserId);
+
+    // ✅ Mark messages as read when chat opens
+    _markAsRead();
+
     fetchMessages();
     connectSocket();
+
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.white,
         statusBarIconBrightness: Brightness.dark,
       ),
     );
+  }
+
+  Future<void> _markAsRead() async {
+    try {
+      await chatService.markAsRead(widget.otherUserId, ""); // pass chatId if needed
+      print("📩 Mark-as-read request sent for ${widget.otherUserId}");
+    } catch (e) {
+      print("❌ Error marking as read: $e");
+    }
   }
 
   Future<void> fetchMessages() async {

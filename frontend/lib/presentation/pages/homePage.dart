@@ -36,6 +36,7 @@ class _HomePageState extends State<HomePage> {
     {'image': 'images/icons/cleaner.png', 'title': 'Cleaner'},
     {'image': 'images/icons/carpenter.png', 'title': 'Carpenter'},
     {'image': 'images/icons/car_repair.png', 'title': 'Car Repair'},
+    {'image': 'images/icons/hairdresser.png', 'title': 'Hairdresser'},
   ];
 
   @override
@@ -200,7 +201,7 @@ class _HomePageState extends State<HomePage> {
                   border: Border.all(color: _primaryColor.withOpacity(0.2)),
                 ),
                 child: CircleAvatar(
-                  radius: 22,
+                  radius: 26,
                   backgroundImage: imageUrl.isNotEmpty
                       ? NetworkImage(imageUrl)
                       : const AssetImage('images/profile.jpg') as ImageProvider,
@@ -211,7 +212,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  const Text('Hello 👋', style: TextStyle(fontSize: 14)),
+                  const Text('Hello 👋', style: TextStyle(fontSize: 16)),
                   Text(
                     name,
                     style: const TextStyle(
@@ -224,6 +225,8 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           Container(
+            width: 45,   // set width
+            height: 45,
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -233,7 +236,7 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 Navigator.pushNamed(context, 'notification');
               },
-              child: const Icon(Icons.notifications_none, color: _primaryColor),
+              child: const Icon(Icons.notifications_none, color: _primaryColor , size: 28),
             ),
           ),
         ],

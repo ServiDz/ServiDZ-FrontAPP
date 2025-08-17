@@ -14,6 +14,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   Map<String, dynamic>? _tasker;
   bool _isLoading = true;
+  bool _isAvailable = false; // Track availability status
   final Color _primaryColor = Colors.blue;
   final Color _backgroundColor = const Color(0xFFF8F9FA);
   final Color _cardColor = Colors.white;
@@ -30,6 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
       final taskerData = await TaskerService().fetchTaskerProfile();
       setState(() {
         _tasker = taskerData;
+        _isAvailable = _tasker?['isAvailable'] ?? false;
         _isLoading = false;
       });
     } catch (e) {
@@ -39,37 +41,128 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-Future<void> _launchNativeEmail() async {
-  final email = 'servidzapp@gmail.com';
-  final subject = 'Help & Support Request';
-  final body = 'Hello Servidz Support Team,\n\n';
+  Future<void> _toggleAvailability(bool newValue) async {
+    try {
+      setState(() {
+        _isAvailable = newValue;
+      });
+      
+      final response = await TaskerService.updateAvailability(
+        newValue,
+        _tasker?['_id'] ?? '',
+      );
 
-  final mailtoUri = Uri(
-    scheme: 'mailto',
-    path: email,
-    queryParameters: {
-      'subject': subject,
-      'body': body,
-    },
-  );
-
-  try {
-    // Just try to launch, even if canLaunchUrl says false
-    await launchUrl(mailtoUri, mode: LaunchMode.externalApplication);
-  } catch (e) {
-    // Handle gracefully
-    if (mounted) {
+      if (response['success'] != true) {
+        // Revert if update failed
+        setState(() {
+          _isAvailable = !newValue;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Failed to update availability'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(newValue 
+                ? 'You are now available for tasks' 
+                : 'You are now unavailable for tasks'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isAvailable = !newValue;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No email app found or failed to open email client.'),
+        SnackBar(
+          content: Text('Error updating availability: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
-}
 
+  void _showAvailabilityDialog() {
+    bool tempAvailability = _isAvailable;
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Update Availability'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Set your availability status:'),
+                  const SizedBox(height: 20),
+                  SwitchListTile(
+                    title: Text(tempAvailability ? 'Available' : 'Unavailable'),
+                    value: tempAvailability,
+                    onChanged: (value) {
+                      setState(() {
+                        tempAvailability = value;
+                      });
+                    },
+                    activeColor: _primaryColor,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryColor,
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await _toggleAvailability(tempAvailability);
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
+  Future<void> _launchNativeEmail() async {
+    final email = 'servidzapp@gmail.com';
+    final subject = 'Help & Support Request';
+    final body = 'Hello Servidz Support Team,\n\n';
+
+    final mailtoUri = Uri(
+      scheme: 'mailto',
+      path: email,
+      queryParameters: {
+        'subject': subject,
+        'body': body,
+      },
+    );
+
+    try {
+      await launchUrl(mailtoUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No email app found or failed to open email client.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   void _showChangePasswordDialog() {
     final currentPasswordController = TextEditingController();
@@ -110,7 +203,6 @@ Future<void> _launchNativeEmail() async {
                         labelText: 'Current Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
@@ -133,7 +225,6 @@ Future<void> _launchNativeEmail() async {
                         labelText: 'New Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
@@ -156,9 +247,8 @@ Future<void> _launchNativeEmail() async {
                         labelText: 'Confirm Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
-                        prefixIcon: const Icon(Icons.lock_outline),
+                        icon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureConfirmPassword 
@@ -374,6 +464,7 @@ Future<void> _launchNativeEmail() async {
     required VoidCallback onTap,
     bool showArrow = true,
     Color? iconColor,
+    Widget? trailing,
   }) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
@@ -430,150 +521,118 @@ Future<void> _launchNativeEmail() async {
                 ],
               ),
             ),
-            if (showArrow)
-              Icon(Icons.chevron_right, color: Colors.grey.shade400),
+            trailing ?? (showArrow
+              ? Icon(Icons.chevron_right, color: Colors.grey.shade400)
+              : const SizedBox.shrink()),
           ],
         ),
       ),
     );
   }
 
-  void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Select Language',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: _textColor,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _buildLanguageOption('English', true),
-                _buildLanguageOption('Spanish', false),
-                _buildLanguageOption('French', false),
-                _buildLanguageOption('German', false),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'CANCEL',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('SAVE', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+  Widget _buildSettingsSection() {
+    return Column(
+      children: [
+        _buildSettingsItem(
+          icon: Icons.person_outline,
+          title: 'Profile Settings',
+          subtitle: 'Update your personal information',
+          onTap: () {
+            Navigator.pushNamed(context, 'professionalInfo');
+          },
+          iconColor: Colors.blue,
+        ),
+        _buildSettingsItem(
+          icon: Icons.toggle_on_outlined,
+          title: 'Availability',
+          subtitle: _isAvailable ? 'Available for tasks' : 'Currently unavailable',
+          onTap: _showAvailabilityDialog,
+          iconColor: Colors.green,
+          trailing: Switch(
+            value: _isAvailable,
+            onChanged: (value) => _toggleAvailability(value),
+            activeColor: _primaryColor,
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLanguageOption(String language, bool isSelected) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(language),
-      trailing: isSelected
-          ? Icon(Icons.check_circle, color: _primaryColor)
-          : Icon(Icons.circle_outlined, color: Colors.grey.shade300),
-      onTap: () {
-        // Implement language change
-      },
-    );
-  }
-
-  void _showThemeDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Select Theme',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: _textColor,
-                  ),
+        ),
+        _buildSettingsItem(
+          icon: Icons.verified,
+          title: 'Certifications',
+          subtitle: 'Update your certifications',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskerCertificationPage(
+                  certifications: _tasker?['certifications'] ?? [],
+                  taskerName: _tasker?['fullName'] ?? 'Tasker',
+                  taskerId: _tasker?['_id'] ?? '',
                 ),
-                const SizedBox(height: 20),
-                _buildThemeOption('Light', true),
-                _buildThemeOption('Dark', false),
-                _buildThemeOption('System Default', false),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'CANCEL',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('SAVE', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            );
+          },
+          iconColor: Colors.green,
+        ),
+        _buildSettingsItem(
+          icon: Icons.notifications_outlined,
+          title: 'Notifications',
+          subtitle: 'Customize your notifications',
+          onTap: () {
+            // Notification settings
+          },
+          iconColor: Colors.orange,
+        ),
+        _buildSettingsItem(
+          icon: Icons.lock_outline,
+          title: 'Change Password',
+          subtitle: 'Update your account password',
+          onTap: _showChangePasswordDialog,
+          iconColor: Colors.indigo,
+        ),
+        _buildSettingsItem(
+          icon: Icons.security_outlined,
+          title: 'Privacy & Security',
+          subtitle: 'Manage your data and security',
+          onTap: () {
+            // Privacy settings
+          },
+          iconColor: Colors.indigo,
+        ),
+        _buildSettingsItem(
+          icon: Icons.help_outline,
+          title: 'Help & Support',
+          subtitle: 'FAQ, Contact us',
+          onTap: _launchNativeEmail,
+          iconColor: Colors.teal,
+        ),
+        _buildSettingsItem(
+          icon: Icons.info_outline,
+          title: 'About',
+          subtitle: 'App version 1.0.0',
+          onTap: () {
+            // About page
+          },
+          iconColor: Colors.blueGrey,
+        ),
+        const SizedBox(height: 16),
+        _buildSettingsItem(
+          icon: Icons.logout,
+          title: 'Logout',
+          subtitle: 'Sign out of your account',
+          onTap: () {
+            // Logout logic
+          },
+          showArrow: false,
+          iconColor: Colors.red,
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: _showDeactivateDialog,
+          child: const Text(
+            'Deactivate Account',
+            style: TextStyle(color: Colors.red),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildThemeOption(String theme, bool isSelected) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(theme),
-      trailing: isSelected
-          ? Icon(Icons.check_circle, color: _primaryColor)
-          : Icon(Icons.circle_outlined, color: Colors.grey.shade300),
-      onTap: () {
-        // Implement theme change
-      },
+        ),
+      ],
     );
   }
 
@@ -653,116 +712,6 @@ Future<void> _launchNativeEmail() async {
     );
   }
 
-  Widget _buildSettingsSection() {
-    return Column(
-      children: [
-        _buildSettingsItem(
-          icon: Icons.person_outline,
-          title: 'Profile Settings',
-          subtitle: 'Update your personal information',
-          onTap: () {
-            Navigator.pushNamed(context, 'professionalInfo');
-          },
-          iconColor: Colors.blue,
-        ),
-          _buildSettingsItem(
-          icon: Icons.verified,
-          title: 'Certifications',
-          subtitle: 'Update your certifications',
-          onTap: () {
-            {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TaskerCertificationPage(
-          certifications: _tasker?['certifications'] ?? [],
-          taskerName: _tasker?['fullName'] ?? 'Tasker',
-          taskerId: _tasker?['_id'] ?? '', // Make sure your API returns the tasker ID
-        ),
-      ),
-    );
-  }
-          },
-          iconColor: Colors.green,
-        ),
-        _buildSettingsItem(
-          icon: Icons.notifications_outlined,
-          title: 'Notifications',
-          subtitle: 'Customize your notifications',
-          onTap: () {
-            // Notification settings
-          },
-          iconColor: Colors.orange,
-        ),
-        _buildSettingsItem(
-          icon: Icons.language,
-          title: 'Language',
-          subtitle: 'English',
-          onTap: _showLanguageDialog,
-          iconColor: Colors.green,
-        ),
-        _buildSettingsItem(
-          icon: Icons.color_lens_outlined,
-          title: 'Theme',
-          subtitle: 'Light',
-          onTap: _showThemeDialog,
-          iconColor: Colors.purple,
-        ),
-        _buildSettingsItem(
-          icon: Icons.lock_outline,
-          title: 'Change Password',
-          subtitle: 'Update your account password',
-          onTap: _showChangePasswordDialog,
-          iconColor: Colors.indigo,
-        ),
-        _buildSettingsItem(
-          icon: Icons.security_outlined,
-          title: 'Privacy & Security',
-          subtitle: 'Manage your data and security',
-          onTap: () {
-            // Privacy settings
-          },
-          iconColor: Colors.indigo,
-        ),
-        _buildSettingsItem(
-          icon: Icons.help_outline,
-          title: 'Help & Support',
-          subtitle: 'FAQ, Contact us',
-          onTap: _launchNativeEmail,
-          iconColor: Colors.teal,
-        ),
-        _buildSettingsItem(
-          icon: Icons.info_outline,
-          title: 'About',
-          subtitle: 'App version 1.0.0',
-          onTap: () {
-            // About page
-          },
-          iconColor: Colors.blueGrey,
-        ),
-        const SizedBox(height: 16),
-        _buildSettingsItem(
-          icon: Icons.logout,
-          title: 'Logout',
-          subtitle: 'Sign out of your account',
-          onTap: () {
-            // Logout logic
-          },
-          showArrow: false,
-          iconColor: Colors.red,
-        ),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: _showDeactivateDialog,
-          child: const Text(
-            'Deactivate Account',
-            style: TextStyle(color: Colors.red),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -801,4 +750,3 @@ Future<void> _launchNativeEmail() async {
     );
   }
 }
-

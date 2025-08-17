@@ -5,16 +5,17 @@ class GetStartedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var sizedBox = SizedBox.expand(
+            child: Image.asset(
+              'images/image.png', 
+              fit: BoxFit.cover,
+            ),
+          );
     return Scaffold(
       body: Stack(
         children: [
           //  Background Image
-          SizedBox.expand(
-            child: Image.asset(
-              'images/getStarted.png', 
-              fit: BoxFit.cover,
-            ),
-          ),
+          sizedBox,
 
           // 💬 Foreground UI
           SafeArea(
@@ -56,7 +57,7 @@ class GetStartedPage extends StatelessWidget {
                       ),
                       child: const Text(
                         "Get Started",
-                        style: TextStyle(fontSize: 16 , color: Color(0xFFFEE2BB), fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16 , color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),

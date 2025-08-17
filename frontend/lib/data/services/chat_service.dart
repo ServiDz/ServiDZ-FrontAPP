@@ -121,23 +121,33 @@ class ChatService {
 }
 
 Future<void> markAsRead(String otherUserId, String chatId) async {
-  if (userId.isEmpty) return;
+  if (userId.isEmpty) {
+    print("⚠️ userId is empty, skipping markAsRead");
+    return;
+  }
 
-  final res = await http.put(
-    Uri.parse('http://192.168.1.4:5000/api/chat/mark-read'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'userId': userId,
-      'otherUserId': otherUserId,
-    }),
-  );
+  try {
+    final res = await http.put(
+      Uri.parse('http://192.168.1.4:5000/api/chat/mark-read'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'userId': userId,
+        'otherUserId': otherUserId,
+      }),
+    );
 
-  if (res.statusCode == 200) {
-    print("✅ Marked as read: $otherUserId");
-  } else {
-    print("❌ Failed to mark as read: ${res.statusCode}");
+    print("📤 Sent markAsRead request: userId=$userId, otherUserId=$otherUserId");
+
+    if (res.statusCode == 200) {
+      print("✅ Marked as read for chat: $chatId | Response: ${res.body}");
+    } else {
+      print("❌ Failed to mark as read: ${res.statusCode} | ${res.body}");
+    }
+  } catch (e) {
+    print("❌ Error in markAsRead: $e");
   }
 }
+
 
 // ✅ Static helper to load userId and fetch chats
   static Future<String?> getUserIdFromPrefs() async {

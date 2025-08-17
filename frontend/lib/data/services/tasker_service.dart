@@ -315,4 +315,27 @@ Future<bool> updateTaskerAvatar(File imageFile) async {
   }
 }
 
+// Add this to your TaskerService class
+static Future<Map<String, dynamic>> updateAvailability(bool isAvailable, String taskerId) async {
+  try {
+    final response = await http.put(
+      Uri.parse('http://192.168.1.4:5000/api/tasker/update-availability'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'taskerId': taskerId,
+        'isAvailable': isAvailable,
+      }),
+    );
+
+    final responseData = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return responseData;
+    } else {
+      throw Exception(responseData['message'] ?? 'Failed to update availability');
+    }
+  } catch (e) {
+    throw Exception('Error updating availability: $e');
+  }
+}
+
 }
