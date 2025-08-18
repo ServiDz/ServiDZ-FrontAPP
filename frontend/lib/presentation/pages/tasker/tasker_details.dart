@@ -500,6 +500,140 @@ class _TaskerPageState extends State<TaskerPage> {
     );
   }
 
+  Widget _buildRatingBar(String label, int starValue, List? ratings) {
+    if (ratings == null) return const SizedBox();
+    
+    final totalRatings = ratings.length;
+    final matchingRatings = ratings.where((r) => r['value'] == starValue).length;
+    final percentage = totalRatings > 0 ? (matchingRatings / totalRatings) * 100 : 0;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: LinearProgressIndicator(
+              value: percentage / 100,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+              minHeight: 8,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$matchingRatings',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingsSection() {
+    final ratings = tasker?['ratings'] as List?;
+    final ratingCount = ratings?.length ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Ratings',
+              style: TextStyle(
+                color: primaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+            if (ratingCount > 0)
+              Text(
+                '$ratingCount ${ratingCount == 1 ? 'Review' : 'Reviews'}',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        
+        if (ratingCount == 0)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: const Center(
+              child: Text(
+                'No reviews yet. Be the first to review!',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Row(
+              children: [
+                Column(
+                  children: [
+                    Text(
+                      tasker!['rating']?.toStringAsFixed(1) ?? '0.0',
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    StarRating(
+                      rating: tasker!['rating']?.toDouble() ?? 0.0,
+                      onRatingChanged: (_) {},
+                      starSize: 20,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Based on $ratingCount reviews',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildRatingBar('5 stars', 5, ratings),
+                      _buildRatingBar('4 stars', 4, ratings),
+                      _buildRatingBar('3 stars', 3, ratings),
+                      _buildRatingBar('2 stars', 2, ratings),
+                      _buildRatingBar('1 star', 1, ratings),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -637,6 +771,7 @@ class _TaskerPageState extends State<TaskerPage> {
                                 ),
                               ),
                             ),
+                            _buildRatingsSection(),
                             _buildActionButtons(),
                           ],
                         ),
