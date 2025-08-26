@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileService {
-  static const String _baseUrl = 'http://192.168.1.4:5000';
+  static const String _baseUrl = 'http://192.168.1.24:5000';
 
  static Future<Map<String, dynamic>?> fetchUserProfile() async {
   final prefs = await SharedPreferences.getInstance();
@@ -111,7 +111,7 @@ static Future<bool> updateProfile(String name, String email) async {
 
   if (userId == null) return false;
 
-  final url = Uri.parse("http://192.168.1.4:5000/api/profile/edit");
+  final url = Uri.parse("http://192.168.1.24:5000/api/profile/edit");
   print("📤 Sending update to: $url");
 
   try {

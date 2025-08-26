@@ -6,10 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/tasker_model.dart';
 
 class TaskerService {
-  final String _baseUrl = 'http://192.168.1.4:5000/api/taskers/all';
+  final String _baseUrl = 'http://192.168.1.24:5000/api/taskers/all';
 
   Future<List<Tasker>> getTopRatedTaskers() async {
-    final url = Uri.parse('http://192.168.1.4:5000/api/taskers/top-rated');
+    final url = Uri.parse('http://192.168.1.24:5000/api/taskers/top-rated');
     print('📡 Fetching top-rated taskers from $url');
 
     try {
@@ -41,7 +41,7 @@ class TaskerService {
       return null;
     }
 
-    final url = Uri.parse('http://192.168.1.4:5000/api/tasker/profile');
+    final url = Uri.parse('http://192.168.1.24:5000/api/tasker/profile');
     print('🌐 Sending GET request to $url');
 
     try {
@@ -71,7 +71,7 @@ class TaskerService {
   }
 
   Future<Map<String, dynamic>> fetchTaskerRatings(String taskerId) async {
-    final url = 'http://192.168.1.4:5000/api/tasker/$taskerId/ratings';
+    final url = 'http://192.168.1.5:5000/api/tasker/$taskerId/ratings';
     print('🌐 Fetching ratings from $url');
 
     try {
@@ -104,7 +104,7 @@ class TaskerService {
     return false;
   }
 
-  final url = Uri.parse('http://192.168.1.4:5000/api/tasker/update-name');
+  final url = Uri.parse('http://192.168.1.5:5000/api/tasker/update-name');
   print('🌐 Sending PUT request to $url with name: $name');
 
   try {
@@ -142,7 +142,7 @@ Future<bool> updateTaskerLocation(String location) async {
     return false;
   }
 
-  final url = Uri.parse('http://192.168.1.4:5000/api/tasker/update-location');
+  final url = Uri.parse('http://192.168.1.5:5000/api/tasker/update-location');
   print('🌐 Sending PUT request to $url with location: $location');
 
   try {
@@ -180,7 +180,7 @@ Future<bool> updateTaskerPhone(String phoneNumber) async {
     return false;
   }
 
-  final url = Uri.parse('http://192.168.1.4:5000/api/tasker/update-phone');
+  final url = Uri.parse('http://192.168.1.5:5000/api/tasker/update-phone');
   print('🌐 Sending PUT request to $url with phoneNumber: $phoneNumber');
 
   try {
@@ -207,7 +207,7 @@ Future<bool> updateTaskerPhone(String phoneNumber) async {
 
 
 Future<List<Map<String, dynamic>>> fetchTaskers() async {
-  const String baseUrl = 'http://192.168.1.4:5000';
+  const String baseUrl = 'http://192.168.1.24:5000';
   const String endpoint = '/api/taskers/all'; 
 
   try {
@@ -271,7 +271,7 @@ Future<bool> updateTaskerAvatar(File imageFile) async {
     // Create multipart request
     var request = http.MultipartRequest(
       'PUT',
-      Uri.parse('http://192.168.1.4:5000/api/tasker/update-avatar'),
+      Uri.parse('http://192.168.1.5:5000/api/tasker/update-avatar'),
     );
 
     // Add the image file
@@ -319,7 +319,7 @@ Future<bool> updateTaskerAvatar(File imageFile) async {
 static Future<Map<String, dynamic>> updateAvailability(bool isAvailable, String taskerId) async {
   try {
     final response = await http.put(
-      Uri.parse('http://192.168.1.4:5000/api/tasker/update-availability'),
+      Uri.parse('http://192.168.1.5:5000/api/tasker/update-availability'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'taskerId': taskerId,

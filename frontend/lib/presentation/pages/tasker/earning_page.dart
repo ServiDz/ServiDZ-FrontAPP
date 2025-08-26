@@ -97,7 +97,7 @@ Future<void> _loadTokenAndFetchData() async {
       }
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.16:5000/api/auth/refresh'),
+        Uri.parse('http://192.168.1.24:5000/api/auth/refresh'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'refreshToken': refreshToken}),
       );

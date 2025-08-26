@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
-  final String baseUrl = 'http://192.168.1.4:5000'; // Make sure this is reachable from your device
+  final String baseUrl = 'http://192.168.1.5:5000'; // Make sure this is reachable from your device
 
   Future<List<dynamic>> fetchNotifications() async {
     print("🔄 Starting fetchNotifications...");

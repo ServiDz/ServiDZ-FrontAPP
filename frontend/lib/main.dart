@@ -33,9 +33,11 @@ import 'package:frontend/presentation/pages/tasker/tasker_chat_page.dart';
 import 'package:frontend/presentation/pages/tasker/tasker_certificate.dart' hide CertificationPage;
 import 'package:frontend/presentation/pages/tasker/professional_info.dart';
 
-
 final notif.FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     notif.FlutterLocalNotificationsPlugin();
+
+// 🌐 Global navigator key for FCM redirection
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -57,10 +59,12 @@ void main() async {
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  // Listen for foreground messages
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
+    // Show local notification
     if (notification != null && android != null) {
       flutterLocalNotificationsPlugin.show(
         notification.hashCode,
@@ -71,8 +75,39 @@ void main() async {
             'high_importance_channel',
             'High Importance Notifications',
             importance: notif.Importance.max,
-            priority: notif.Priority.high, // ✅ FIXED HERE
+            priority: notif.Priority.high,
           ),
+        ),
+      );
+    }
+
+    // 🔥 Handle account suspension
+    if (message.data['type'] == 'suspension') {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('accessToken');
+      await prefs.remove('refreshToken');
+      await prefs.remove('userId');
+
+      // Redirect to login
+      navigatorKey.currentState!.pushNamedAndRemoveUntil(
+        'login',
+        (route) => false,
+      );
+
+      // Optional alert dialog
+      showDialog(
+        context: navigatorKey.currentContext!,
+        builder: (_) => AlertDialog(
+          title: const Text('Account Suspended'),
+          content: const Text('Your account has been suspended by the admin.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(navigatorKey.currentContext!);
+              },
+              child: const Text('OK'),
+            ),
+          ],
         ),
       );
     }
@@ -95,6 +130,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(),
       initialRoute: initialRoute,
@@ -166,7 +202,6 @@ class MyApp extends StatelessWidget {
         'professionalInfo': (context) => const ProfessionalProfilePage(),
         'userBookings': (context) => UserBookingsPage(),
         'viewMore': (context) => const ViewMore(),
-
       },
     );
   }

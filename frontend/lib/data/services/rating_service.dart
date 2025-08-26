@@ -8,7 +8,7 @@ class RatingService {
     required double value,
     String? review,
   }) async {
-    final url = Uri.parse('http://192.168.1.4:5000/api/tasker/rate'); // Your backend IP/port
+    final url = Uri.parse('http://192.168.1.5:5000/api/tasker/rate'); // Your backend IP/port
 
     print("📤 Sending rating request to: $url");
     print("📝 Payload:");

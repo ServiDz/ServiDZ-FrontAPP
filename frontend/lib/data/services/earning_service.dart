@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EarningService {
-  final String _baseUrl = 'http://192.168.1.4:5000/api';
+  final String _baseUrl = 'http://192.168.1.24:5000/api';
 
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();

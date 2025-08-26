@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AIService {
-  static const String _baseUrl = 'http://192.168.1.4:5000/api';
+  static const String _baseUrl = 'http://192.168.1.5:5000/api';
 
   static Future<Map<String, dynamic>> predictCategory(File image) async {
     try {
