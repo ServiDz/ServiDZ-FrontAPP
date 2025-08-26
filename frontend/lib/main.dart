@@ -87,6 +87,7 @@ void main() async {
       await prefs.remove('accessToken');
       await prefs.remove('refreshToken');
       await prefs.remove('userId');
+      await prefs.remove('taskerId');
 
       // Redirect to login
       navigatorKey.currentState!.pushNamedAndRemoveUntil(
