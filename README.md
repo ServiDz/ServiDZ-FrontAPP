@@ -22,9 +22,8 @@
 - **Backend:** Node.js + Express.js  
 - **Database:** MongoDB  
 - **Authentication:** JWT  
-- **AI:** OpenAI-powered image classification & recommendations  
-- **Deployment:** Heroku / AWS (optional)  
-
+- **OpenStreetMap Integration**
+- **AI-Powered Search**
 ---
 
 ## 🤖 AI-Powered Search
