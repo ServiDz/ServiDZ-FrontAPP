@@ -37,8 +37,3 @@ ServiDZ features an **AI assistant** that helps users find the best professional
 4. **Instant booking** – Users can view and book the **best-fit taskers** for their job.  
 
 > This AI-powered approach makes finding the right professional **faster, easier, and more accurate**.
-
----
-
-git clone https://github.com/ikram713/ServiDZ.git
-cd ServiDZ
